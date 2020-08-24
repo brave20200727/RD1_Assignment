@@ -4,8 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>氣象局網站資料</title>
+    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
 </head>
 <body>
-    
+    <script>
+        $(document).ready(function() {
+            $.ajax({
+                type: "get",
+                url: "https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-077?Authorization=CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65&locationName=%E5%8C%97%E5%8D%80"
+            }).then(function(e) {
+                // console.log(e["records"]["locations"][0].datasetDescription);
+                console.log(e.records.locations);
+            }).catch(function(e) {
+                console.log(e.message);
+            });
+        });
+    </script>
+    <div id="debug"></div>
 </body>
 </html>
