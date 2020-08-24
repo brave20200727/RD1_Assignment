@@ -5,16 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>氣象局網站資料</title>
     <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"> 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
+    <form class="m-5">
+        <div class="form-group row">
+          <label for="selectCity" class="col-5 col-form-label">城市</label> 
+          <div class="col-7">
+            <select id="selectCity" name="selectCity" class="custom-select">
+              <option value="1">宜蘭縣</option>
+              <option value="2">桃園市</option>
+              <option value="3">新竹縣</option>
+              <option value="4">苗栗縣</option>
+              <option value="5">彰化縣</option>
+              <option value="6">南投縣</option>
+              <option value="7">雲林縣</option>
+              <option value="8">嘉義縣</option>
+              <option value="9">屏東縣</option>
+              <option value="10">臺東縣</option>
+              <option value="11">花蓮縣</option>
+              <option value="12">澎湖縣</option>
+              <option value="13">基隆縣</option>
+              <option value="14">新竹市</option>
+              <option value="15">嘉義市</option>
+              <option value="16">臺北市</option>
+              <option value="17">高雄市</option>
+              <option value="18">新北市</option>
+              <option value="19">臺中市</option>
+              <option value="20">臺南市</option>
+              <option value="21">連江縣</option>
+              <option value="22">金門縣</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="selectRange" class="col-5 col-form-label">範圍</label> 
+          <div class="col-7">
+            <select id="selectRange" name="selectRange" class="custom-select">
+              <option value="1">未來一週</option>
+              <option value="2">未來兩天</option>
+            </select>
+          </div>
+        </div> 
+        <div class="form-group row">
+          <div class="offset-5 col-7">
+            <button name="submit" type="submit" class="btn btn-primary">送出</button>
+          </div>
+        </div>
+    </form>
     <script>
+        let key = "CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65";
         $(document).ready(function() {
             $.ajax({
                 type: "get",
-                url: "https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-077?Authorization=CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65&locationName=%E5%8C%97%E5%8D%80"
+                url: `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-077?Authorization=${key}`
             }).then(function(e) {
-                // console.log(e["records"]["locations"][0].datasetDescription);
+                console.log(e);
+                console.log(e.records);
                 console.log(e.records.locations);
+                console.log(e.records.locations[0]);
+                console.log(e.records.locations[0].location);
+                let outputStr = "";
+                for(let i = 0; i < e.records.locations[0].location.length; i++) {
+                    outputStr = outputStr + e.records.locations[0].location[i].locationName + ", ";
+                }
+                console.log(outputStr);
             }).catch(function(e) {
                 console.log(e.message);
             });
