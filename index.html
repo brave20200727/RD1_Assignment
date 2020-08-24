@@ -10,59 +10,68 @@
 </head>
 <body>
   <div>
-    <select id="selectCity" name="selectCity">
+    <select id="citySelected" name="citySelected">
+      <option value="49">基隆縣</option>
+      <option value="61">臺北市</option>
+      <option value="69">新北市</option>
+      <option value="5">桃園市</option>
+      <option value="9">新竹縣</option>
+      <option value="53">新竹市</option>
+      <option value="13">苗栗縣</option>
+      <option value="73">臺中市</option>
+      <option value="17">彰化縣</option>
+      <option value="21">南投縣</option>
+      <option value="25">雲林縣</option>
+      <option value="29">嘉義縣</option>
+      <option value="57">嘉義市</option>
+      <option value="77">臺南市</option>
+      <option value="65">高雄市</option>
+      <option value="33">屏東縣</option>
       <option value="1">宜蘭縣</option>
-      <option value="2">桃園市</option>
-      <option value="3">新竹縣</option>
-      <option value="4">苗栗縣</option>
-      <option value="5">彰化縣</option>
-      <option value="6">南投縣</option>
-      <option value="7">雲林縣</option>
-      <option value="8">嘉義縣</option>
-      <option value="9">屏東縣</option>
-      <option value="10">臺東縣</option>
-      <option value="11">花蓮縣</option>
-      <option value="12">澎湖縣</option>
-      <option value="13">基隆縣</option>
-      <option value="14">新竹市</option>
-      <option value="15">嘉義市</option>
-      <option value="16">臺北市</option>
-      <option value="17">高雄市</option>
-      <option value="18">新北市</option>
-      <option value="19">臺中市</option>
-      <option value="20">臺南市</option>
-      <option value="21">連江縣</option>
-      <option value="22">金門縣</option>
+      <option value="37">臺東縣</option>
+      <option value="41">花蓮縣</option>
+      <option value="45">澎湖縣</option>
+      <option value="81">連江縣</option>
+      <option value="85">金門縣</option>
+      
     </select>
   </div>
   <div>
-    <select id="selectRange" name="selectRange">
-      <option value="1">未來一週</option>
-      <option value="2">未來兩天</option>
+    <select id="rangeSelected" name="rangeSelected">
+      <option value="0">未來兩天</option>
+      <option value="2">未來一週</option>
     </select>
   </div>
+  <div>
+    <button id="okButton">確定</button>
+  </div>
+  <div id="debug"></div>
   <script>
-      let key = "CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65";
       $(document).ready(function() {
+        let key = "CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65";
+        $("#okButton").on("click", function() {
+          let dataPos = Number($("#citySelected").prop("value")) + Number($("#rangeSelected").prop("value"));
+          if(dataPos < 10) {
+            dataPos = "00" + dataPos;
+          }
+          else if(dataPos < 100) {
+            dataPos = "0" + dataPos;
+          }
+          // $("#debug").text(dataPos);
           $.ajax({
-              type: "get",
-              url: `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-077?Authorization=${key}`
+            type: "get",
+            url: `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-${dataPos}?Authorization=${key}`
           }).then(function(e) {
-              console.log(e);
-              console.log(e.records);
-              console.log(e.records.locations);
-              console.log(e.records.locations[0]);
-              console.log(e.records.locations[0].location);
-              let outputStr = "";
-              for(let i = 0; i < e.records.locations[0].location.length; i++) {
-                  outputStr = outputStr + e.records.locations[0].location[i].locationName + ", ";
-              }
-              console.log(outputStr);
+            let outputStr = "";
+            for(let i = 0; i < e.records.locations[0].location.length; i++) {
+                outputStr = outputStr + e.records.locations[0].location[i].locationName + ", ";
+            }
+            $("#debug").text(outputStr);
           }).catch(function(e) {
-              console.log(e.message);
+            console.log(e.message);
           });
+        });
       });
   </script>
-  <div id="debug"></div>
 </body>
 </html>
