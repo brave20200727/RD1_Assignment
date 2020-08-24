@@ -70,8 +70,8 @@
   function get1WeekWeather(data) {
     let locationData = data.records.locations[0].location; // 縣市中各區的資料
     for(let item of locationData) { // 將各個區都跑過一輪 並且將資料給抓出來
-      $("#resultDiv").append(item.locationName + "<br>");
-      $("#resultDiv").append(item.weatherElement[10].description + "<br>");
+      $("#resultDiv").append("<h3>" + item.locationName + "</h3>");
+      $("#resultDiv").append("<h5>" + item.weatherElement[10].description + "</h5>");
       for(let timeItem of item.weatherElement[10].time) {
         $("#resultDiv").append(timeItem.startTime + "&nbsp;&nbsp;&nbsp;&nbsp;");
         $("#resultDiv").append(timeItem.endTime + "<br>");
