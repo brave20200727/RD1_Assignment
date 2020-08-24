@@ -56,8 +56,8 @@
   function get2DaysWeather(data) {
     let locationData = data.records.locations[0].location; // 縣市中各區的資料
     for(let item of locationData) { // 將各個區都跑過一輪 並且將資料給抓出來
-      $("#resultDiv").append(item.locationName + "<br>");
-      $("#resultDiv").append(item.weatherElement[6].description + "<br>");
+      $("#resultDiv").append("<h3>" + item.locationName + "</h3>");
+      $("#resultDiv").append("<h5>" + item.weatherElement[6].description + "</h5>");
       for(let timeItem of item.weatherElement[6].time) {
         $("#resultDiv").append(timeItem.startTime + "&nbsp;&nbsp;&nbsp;&nbsp;");
         $("#resultDiv").append(timeItem.endTime + "<br>");
@@ -83,6 +83,15 @@
 
   $(document).ready(function () {
     let key = "CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65";
+    // $.ajax({
+    //   type: "get",
+    //   url: `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=${key}`
+    // }).then(function (data) {
+    //   console.log(data.records.locations[0].location);
+    // }).catch(function (e) {
+    //   console.log(e.message);
+    // });
+
     $("#okButton").on("click", function () {
       $("#resultDiv").empty();
       let dataPool = Number($("#citySelected").prop("value")) + Number($("#rangeSelected").prop("value"));
