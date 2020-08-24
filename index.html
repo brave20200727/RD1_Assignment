@@ -1,77 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>氣象局網站資料</title>
-    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"> 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>氣象局網站資料</title>
+  <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+  <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css">
 </head>
+
 <body>
-  <div>
-    <select id="citySelected" name="citySelected">
-      <option value="49">基隆縣</option>
-      <option value="61">臺北市</option>
-      <option value="69">新北市</option>
-      <option value="5">桃園市</option>
-      <option value="9">新竹縣</option>
-      <option value="53">新竹市</option>
-      <option value="13">苗栗縣</option>
-      <option value="73">臺中市</option>
-      <option value="17">彰化縣</option>
-      <option value="21">南投縣</option>
-      <option value="25">雲林縣</option>
-      <option value="29">嘉義縣</option>
-      <option value="57">嘉義市</option>
-      <option value="77">臺南市</option>
-      <option value="65">高雄市</option>
-      <option value="33">屏東縣</option>
-      <option value="1">宜蘭縣</option>
-      <option value="37">臺東縣</option>
-      <option value="41">花蓮縣</option>
-      <option value="45">澎湖縣</option>
-      <option value="81">連江縣</option>
-      <option value="85">金門縣</option>
-      
-    </select>
+  <div class="row">
+    <div>
+      <select id="citySelected" name="citySelected" style="width: 10em; margin-left: 2em; margin-top: 1em; margin-bottom: 1em;">
+        <option value="49">基隆縣</option>
+        <option value="61">臺北市</option>
+        <option value="69">新北市</option>
+        <option value="5">桃園市</option>
+        <option value="9">新竹縣</option>
+        <option value="53">新竹市</option>
+        <option value="13">苗栗縣</option>
+        <option value="73">臺中市</option>
+        <option value="17">彰化縣</option>
+        <option value="21">南投縣</option>
+        <option value="25">雲林縣</option>
+        <option value="29">嘉義縣</option>
+        <option value="57">嘉義市</option>
+        <option value="77">臺南市</option>
+        <option value="65">高雄市</option>
+        <option value="33">屏東縣</option>
+        <option value="1">宜蘭縣</option>
+        <option value="37">臺東縣</option>
+        <option value="41">花蓮縣</option>
+        <option value="45">澎湖縣</option>
+        <option value="81">連江縣</option>
+        <option value="85">金門縣</option>
+      </select>
+    </div>
+    <div>
+      <select id="rangeSelected" name="rangeSelected" style="width: 10em; margin-left: 2em; margin-top: 1em; margin-bottom: 1em;">
+        <option value="0">未來兩天</option>
+        <option value="2">未來一週</option>
+      </select>
+    </div>
+    <div>
+      <button id="okButton" style="margin-left: 2em; margin-top: 1em; margin-bottom: 1em;">確定</button>
+    </div>    
   </div>
-  <div>
-    <select id="rangeSelected" name="rangeSelected">
-      <option value="0">未來兩天</option>
-      <option value="2">未來一週</option>
-    </select>
-  </div>
-  <div>
-    <button id="okButton">確定</button>
-  </div>
-  <div id="debug"></div>
-  <script>
-      $(document).ready(function() {
-        let key = "CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65";
-        $("#okButton").on("click", function() {
-          let dataPos = Number($("#citySelected").prop("value")) + Number($("#rangeSelected").prop("value"));
-          if(dataPos < 10) {
-            dataPos = "00" + dataPos;
-          }
-          else if(dataPos < 100) {
-            dataPos = "0" + dataPos;
-          }
-          // $("#debug").text(dataPos);
-          $.ajax({
-            type: "get",
-            url: `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-${dataPos}?Authorization=${key}`
-          }).then(function(e) {
-            let outputStr = "";
-            for(let i = 0; i < e.records.locations[0].location.length; i++) {
-                outputStr = outputStr + e.records.locations[0].location[i].locationName + ", ";
-            }
-            $("#debug").text(outputStr);
-          }).catch(function(e) {
-            console.log(e.message);
-          });
-        });
-      });
-  </script>
+
+  <div id="resultDiv"></div>
 </body>
+
+<script>
+
+  function get2DaysWeather(data) {
+    let locationData = data.records.locations[0].location; // 縣市中各區的資料
+    for(let item of locationData) { // 將各個區都跑過一輪 並且將資料給抓出來
+      $("#resultDiv").append(item.locationName + "<br>");
+      $("#resultDiv").append(item.weatherElement[6].description + "<br>");
+      for(let timeItem of item.weatherElement[6].time) {
+        $("#resultDiv").append(timeItem.startTime + "&nbsp;&nbsp;&nbsp;&nbsp;");
+        $("#resultDiv").append(timeItem.endTime + "<br>");
+        $("#resultDiv").append(timeItem.elementValue[0].value + "<br>");
+      }
+      $("#resultDiv").append("<hr>");
+    }
+  }
+
+  function get1WeekWeather(data) {
+    let locationData = data.records.locations[0].location; // 縣市中各區的資料
+    for(let item of locationData) { // 將各個區都跑過一輪 並且將資料給抓出來
+      $("#resultDiv").append(item.locationName + "<br>");
+      $("#resultDiv").append(item.weatherElement[10].description + "<br>");
+      for(let timeItem of item.weatherElement[10].time) {
+        $("#resultDiv").append(timeItem.startTime + "&nbsp;&nbsp;&nbsp;&nbsp;");
+        $("#resultDiv").append(timeItem.endTime + "<br>");
+        $("#resultDiv").append(timeItem.elementValue[0].value + "<br>");
+      }
+      $("#resultDiv").append("<hr>");
+    }
+  }
+
+  $(document).ready(function () {
+    let key = "CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65";
+    $("#okButton").on("click", function () {
+      $("#resultDiv").empty();
+      let dataPool = Number($("#citySelected").prop("value")) + Number($("#rangeSelected").prop("value"));
+      if (dataPool < 10) {
+        dataPool = "00" + dataPool;
+      }
+      else if (dataPool < 100) {
+        dataPool = "0" + dataPool;
+      }
+      // $("#resultDiv").text(dataPos);
+      $.ajax({
+        type: "get",
+        url: `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-${dataPool}?Authorization=${key}`
+      }).then(function (data) {
+        console.log(data.records.locations[0].location);
+        let rangeValue = $("#rangeSelected").prop("value");
+        if(rangeValue == "0") {
+          get2DaysWeather(data);
+        }
+        else {
+          get1WeekWeather(data);
+        }
+      }).catch(function (e) {
+        console.log(e.message);
+      });
+    });
+  });
+</script>
+
 </html>
