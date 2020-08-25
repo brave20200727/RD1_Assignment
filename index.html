@@ -13,28 +13,6 @@
   <div class="row">
     <div>
       <select id="citySelected" name="citySelected" style="width: 10em; margin-left: 2em; margin-top: 1em; margin-bottom: 1em;">
-        <option value="49">基隆縣</option>
-        <option value="61">臺北市</option>
-        <option value="69">新北市</option>
-        <option value="5">桃園市</option>
-        <option value="9">新竹縣</option>
-        <option value="53">新竹市</option>
-        <option value="13">苗栗縣</option>
-        <option value="73">臺中市</option>
-        <option value="17">彰化縣</option>
-        <option value="21">南投縣</option>
-        <option value="25">雲林縣</option>
-        <option value="29">嘉義縣</option>
-        <option value="57">嘉義市</option>
-        <option value="77">臺南市</option>
-        <option value="65">高雄市</option>
-        <option value="33">屏東縣</option>
-        <option value="1">宜蘭縣</option>
-        <option value="37">臺東縣</option>
-        <option value="41">花蓮縣</option>
-        <option value="45">澎湖縣</option>
-        <option value="81">連江縣</option>
-        <option value="85">金門縣</option>
       </select>
     </div>
     <div>
@@ -81,16 +59,45 @@
     }
   }
 
+  function showTotalWeather(allCity) {
+    let userChoose;
+    // for(city of allCity) {
+    //   if(city.locationName == $(#""))
+    // }
+  }
+
+  // 存有所有城市的Array
+  let cityArray = [
+    {"cityName": "基隆縣", "value": 49},
+    {"cityName": "臺北市", "value": 61},
+    {"cityName": "新北市", "value": 69},
+    {"cityName": "桃園市", "value": 5},
+    {"cityName": "新竹縣", "value": 9},
+    {"cityName": "新竹市", "value": 53},
+    {"cityName": "苗栗縣", "value": 13},
+    {"cityName": "臺中市", "value": 73},
+    {"cityName": "彰化縣", "value": 17},
+    {"cityName": "南投縣", "value": 21},
+    {"cityName": "雲林縣", "value": 25},
+    {"cityName": "嘉義縣", "value": 29},
+    {"cityName": "嘉義市", "value": 57},
+    {"cityName": "臺南市", "value": 77},
+    {"cityName": "高雄市", "value": 65},
+    {"cityName": "屏東縣", "value": 33},
+    {"cityName": "宜蘭縣", "value": 1},
+    {"cityName": "臺東縣", "value": 37},
+    {"cityName": "花蓮縣", "value": 41},
+    {"cityName": "澎湖縣", "value": 45},
+    {"cityName": "連江縣", "value": 81},
+    {"cityName": "金門縣", "value": 85}
+  ]
+
   $(document).ready(function () {
     let key = "CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65";
-    // $.ajax({
-    //   type: "get",
-    //   url: `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=${key}`
-    // }).then(function (data) {
-    //   console.log(data.records.locations[0].location);
-    // }).catch(function (e) {
-    //   console.log(e.message);
-    // });
+    for(city of cityArray) {
+      let oneCity = $("<option></option>").prop("value", city.value).append(city.cityName);
+      $("#citySelected").append(oneCity);
+    };
 
     $("#okButton").on("click", function () {
       $("#resultDiv").empty();
@@ -118,6 +125,28 @@
         console.log(e.message);
       });
     });
+
+    let cityWeatherInfo;
+    $("#citySelected").on("change", function(){
+      // 找出與citySelected所選出的城市一樣的城市
+      let cityItem;
+      for(city of cityArray) {
+        if(city.value == $("#citySelected").prop("value")){
+          cityItem = city;
+        }
+      }
+      $.ajax({
+        type: "get",
+        url: "https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65&sort=time"        
+      }).then(function(data) {
+        console.log(data);
+        cityWeatherInfo = data.records.location; // 抓出個縣市36小時內天氣資料的array
+      }).catch(function(e) {
+        console.log(e.message);
+      })
+      
+    });
+
   });
 </script>
 
