@@ -11,9 +11,6 @@
     div {
       margin: 5px;
     }
-    #first{
-      background-color: lightblue;
-    }
   </style>
 </head>
 
@@ -136,6 +133,8 @@
         type: "get",
         url: "https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65&sort=time"        
       }).then(function(data) {
+        // let answer = JSON.parse(data);
+        // console.log(answer);
         let cityWeatherInfo = data.records.location; // 抓出個縣市36小時內天氣資料的array
         let userCity;
         for(city of cityWeatherInfo) {
@@ -150,21 +149,21 @@
         $("#firstWeather").append("最高溫度： " + userCity.weatherElement[2].time[0].parameter.parameterName + "攝氏度<br>");
         $("#firstWeather").append("最低溫度： " + userCity.weatherElement[4].time[0].parameter.parameterName + "攝氏度<br>");
         $("#firstWeather").append("舒適度： " + userCity.weatherElement[3].time[0].parameter.parameterName);
-        $("#firstWeather").prop("style", "border: 1px solid");
+        $("#firstWeather").css("background-color", "lightblue");
         $("#secondWeather").append("今晚天氣<br>");
         $("#secondWeather").append("天氣描述： " + userCity.weatherElement[0].time[1].parameter.parameterName + "<br>");
         $("#secondWeather").append("降雨機率： " + userCity.weatherElement[1].time[1].parameter.parameterName + "%<br>");
         $("#secondWeather").append("最高溫度： " + userCity.weatherElement[2].time[1].parameter.parameterName + "攝氏度<br>");
         $("#secondWeather").append("最低溫度： " + userCity.weatherElement[4].time[1].parameter.parameterName + "攝氏度<br>");
         $("#secondWeather").append("舒適度： " + userCity.weatherElement[3].time[1].parameter.parameterName);
-        $("#secondWeather").prop("style", "border: 1px solid");
+        $("#secondWeather").css("background-color", "lightblue");
         $("#thirdWeather").append("明晨天氣<br>");
         $("#thirdWeather").append("天氣描述： " + userCity.weatherElement[0].time[2].parameter.parameterName + "<br>");
         $("#thirdWeather").append("降雨機率： " + userCity.weatherElement[1].time[2].parameter.parameterName + "%<br>");
         $("#thirdWeather").append("最高溫度： " + userCity.weatherElement[2].time[2].parameter.parameterName + "攝氏度<br>");
         $("#thirdWeather").append("最低溫度： " + userCity.weatherElement[4].time[2].parameter.parameterName + "攝氏度<br>");
         $("#thirdWeather").append("舒適度： " + userCity.weatherElement[3].time[2].parameter.parameterName);
-        $("#thirdWeather").prop("style", "border: 1px solid");
+        $("#thirdWeather").css("background-color", "lightblue");
       }).catch(function(e) {
         console.log(e.message);
       })
