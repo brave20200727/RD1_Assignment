@@ -69,45 +69,47 @@
       console.log(e.message);
     })
 
-    let userCityName = ""; // 用來儲存使用者所選的城市名
+    // let userCityName = ""; // 用來儲存使用者所選的城市名
     $("#citySelected").on("change", function(){
       let cityId = $("#citySelected").prop("value");
-      console.log(cityId);
+      // console.log(cityId);
       $.ajax({
         type: "get",
         url: `myApi.php?cityId=${cityId}`
       }).then(function(dataForServer) {
-        let answer = JSON.parse(dataForServer);
-        console.log(answer);
-        userCityName = answer.cityName;
-        console.log(userCityName);
+        // let answer = JSON.parse(dataForServer);
+        // console.log(answer);
+        // userCityName = answer.cityName;
+        // console.log(userCityName);
+
       }).catch(function(e) {
         console.log(e.message);
       })
       // console.log(userCity);
 
-      $("#firstWeather").empty();
-      $("#secondWeather").empty();
-      $("#thirdWeather").empty();
-      $.ajax({
-        type: "get",
-        url: "myApi.php?getWeather=1"
-      }).then(function(data) {
-        // console.log(data);
-        let answer = JSON.parse(data);
-        console.log(answer);
-        let cityWeatherInfo = answer.records.locations[0].location; // 抓出個縣市36小時內天氣資料的array
-        // console.log(cityWeatherInfo);
-        let userCity;
-        for(let city of cityWeatherInfo) {
-          if(city.locationName == userCityName) {
-            userCity = city;
-          }
-        }
-        console.log(userCity);
-      }).catch(function(e) {
-        console.log(e.message);
-      })
+      // $("#firstWeather").empty();
+      // $("#secondWeather").empty();
+      // $("#thirdWeather").empty();
+      // $.ajax({
+      //   type: "get",
+      //   url: `myApi.php?cityId=${cityId}`
+      // }).then(function(data) {
+      //   // console.log(data);
+      //   // let answer = JSON.parse(data);
+      //   // console.log(answer);
+      //   // let cityWeatherInfo = answer.records.locations[0].location; // 抓出個縣市36小時內天氣資料的array
+      //   let cityWeatherInfo = data.records.locations[0].location;
+      //   // console.log(cityWeatherInfo);
+      //   let userCity;
+      //   for(let city of cityWeatherInfo) {
+      //     if(city.locationName == userCityName) {
+      //       userCity = city;
+      //     }
+      //   }
+      //   console.log(userCity);
+      // }).catch(function(e) {
+      //   console.log(e.message);
+      // })
     });
 
     // 按下確定鍵就會進行資料的抓取以及顯示在網頁上面
