@@ -36,7 +36,6 @@
         // $cityName = $cityWeather->locationName;
 
         $allCityWeather = $answer->records->locations[0]->location;
-
         for($i = 0; $i < count($allCityWeather); $i++) {
             $cityName = $allCityWeather[$i]->locationName;
             $weatherElementPoP12H = $allCityWeather[$i]->weatherElement[0]; // 12小時降雨機率
@@ -63,43 +62,43 @@
 
                 $allData[] = $oneRowData;
             }
-            $allWeatherElementRH = $weatherElementRH->time;
-            for($i = 0; $i < count($allWeatherElementRH); $i++) {
-                $allData[$i]['RH'] = $allWeatherElementRH[$i]->elementValue[0]->value;
-            }
-            $allWeatherElementWS = $weatherElementWS->time;
-            for($i = 0; $i < count($allWeatherElementWS); $i++) {
-                $allData[$i]['WS1'] = $allWeatherElementWS[$i]->elementValue[0]->value;
-                $allData[$i]['WS2'] = $allWeatherElementWS[$i]->elementValue[1]->value;
-            }
-            $allWeatherElementWD = $weatherElementWD->time;
-            for($i = 0; $i < count($allWeatherElementWD); $i++) {
-                $allData[$i]['WD'] = $allWeatherElementWD[$i]->elementValue[0]->value;
-            }
-            $allWeatherElementMaxAT = $weatherElementMaxAT->time;
-            for($i = 0; $i < count($allWeatherElementMaxAT); $i++) {
-                $allData[$i]['MaxAT'] = $allWeatherElementMaxAT[$i]->elementValue[0]->value;
-            }
-            $allWeatherElementMinAT = $weatherElementMinAT->time;
-            for($i = 0; $i < count($allWeatherElementMinAT); $i++) {
-                $allData[$i]['MinAT'] = $allWeatherElementMinAT[$i]->elementValue[0]->value;
-            }
-            $allWeatherElementMaxT = $weatherElementMaxT->time;
-            for($i = 0; $i < count($allWeatherElementMaxT); $i++) {
-                $allData[$i]['MaxT'] = $allWeatherElementMaxT[$i]->elementValue[0]->value;
-            }
-            $allWeatherElementMinT = $weatherElementMinT->time;
-            for($i = 0; $i < count($allWeatherElementMinT); $i++) {
-                $allData[$i]['MinT'] = $allWeatherElementMinT[$i]->elementValue[0]->value;
-            }
-            $allWeatherElementWx = $weatherElementWx->time;
-            for($i = 0; $i < count($allWeatherElementWx); $i++) {
-                $allData[$i]['Wx'] = $allWeatherElementWx[$i]->elementValue[0]->value;
-            }
-
-            // var_dump($allData);
-            // unset($allData);
+            // $allWeatherElementRH = $weatherElementRH->time;
+            // for($i = 0; $i < count($allWeatherElementRH); $i++) {
+            //     $allData[$i]['RH'] = $allWeatherElementRH[$i]->elementValue[0]->value;
+            // }
+            // $allWeatherElementWS = $weatherElementWS->time;
+            // for($i = 0; $i < count($allWeatherElementWS); $i++) {
+            //     $allData[$i]['WS1'] = $allWeatherElementWS[$i]->elementValue[0]->value;
+            //     $allData[$i]['WS2'] = $allWeatherElementWS[$i]->elementValue[1]->value;
+            // }
+            // $allWeatherElementWD = $weatherElementWD->time;
+            // for($i = 0; $i < count($allWeatherElementWD); $i++) {
+            //     $allData[$i]['WD'] = $allWeatherElementWD[$i]->elementValue[0]->value;
+            // }
+            // $allWeatherElementMaxAT = $weatherElementMaxAT->time;
+            // for($i = 0; $i < count($allWeatherElementMaxAT); $i++) {
+            //     $allData[$i]['MaxAT'] = $allWeatherElementMaxAT[$i]->elementValue[0]->value;
+            // }
+            // $allWeatherElementMinAT = $weatherElementMinAT->time;
+            // for($i = 0; $i < count($allWeatherElementMinAT); $i++) {
+            //     $allData[$i]['MinAT'] = $allWeatherElementMinAT[$i]->elementValue[0]->value;
+            // }
+            // $allWeatherElementMaxT = $weatherElementMaxT->time;
+            // for($i = 0; $i < count($allWeatherElementMaxT); $i++) {
+            //     $allData[$i]['MaxT'] = $allWeatherElementMaxT[$i]->elementValue[0]->value;
+            // }
+            // $allWeatherElementMinT = $weatherElementMinT->time;
+            // for($i = 0; $i < count($allWeatherElementMinT); $i++) {
+            //     $allData[$i]['MinT'] = $allWeatherElementMinT[$i]->elementValue[0]->value;
+            // }
+            // $allWeatherElementWx = $weatherElementWx->time;
+            // for($i = 0; $i < count($allWeatherElementWx); $i++) {
+            //     $allData[$i]['Wx'] = $allWeatherElementWx[$i]->elementValue[0]->value;
+            // }
+            
+            $allData = array();
         }
+        var_dump($allData[0]);
 
         // $weatherElementPoP12H = $cityWeather->weatherElement[0]; // 12小時降雨機率
         // $weatherElementRH = $cityWeather->weatherElement[2]; // 平均相對濕度
@@ -255,6 +254,7 @@
         //     mysqli_query($dbLink, $sqlCommand);
         // }
         // curl_close($ch);
+        mysqli_close($dbLink);
     }
 
     // if($method == "GET") {
