@@ -117,6 +117,7 @@
 
     $("#citySelected").on("change", function() {
       let cityId = $("#citySelected").prop('value');
+      let data2Server = {"cityId": cityId};
       if(cityId == "-1") {
         $("#citySelectedErr").html("請選擇城市");
         $("#threeDaysWeather").empty();
@@ -124,11 +125,12 @@
       }
       else{
         $.ajax({
-          type: "GET",
-          url: `myApi.php?cityId=${cityId}`
+          type: "POST",
+          url: `myApi.php`,
+          data: data2Server
         }).then(function(dataFromServer){
           let data = JSON.parse(dataFromServer);
-          // console.log(data);
+          console.log(data);
           $("#threeDaysWeather").empty();
           $("#citySelectedErr").html("");
           for(let i = 0; i < 6; i += 2) {
@@ -172,7 +174,7 @@
         });
 
         $.ajax({
-          type: "get",
+          type: "GET",
           url: `myApi.php?getRainDataFromServer=1&cityId=${cityId}`
         }).then(function(dataFromServer) {
           let data = JSON.parse(dataFromServer);

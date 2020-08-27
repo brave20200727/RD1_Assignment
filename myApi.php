@@ -1,6 +1,6 @@
 <?php
     $method = $_SERVER['REQUEST_METHOD'];
-    $dbLink = mysqli_connect("localhost", "root", "root", "RD1_Assignment", 8889) or die(mysqli_connect_error());
+    $dbLink = mysqli_connect("localhost", "root", "", "RD1_Assignment") or die(mysqli_connect_error());
     mysqli_query($dbLink, "set names utf8");
 
     // var_dump($_GET);
@@ -32,6 +32,17 @@
         }
         else {
             getAllCities();
+        }
+    }
+    else if($method == "POST") {
+        if(isset($_POST["cityId"])) {
+            $cityId = $_POST["cityId"];
+            $sqlCommand = "SELECT * FROM weathers WHERE cityId = '$cityId' AND startTime >= CURDATE()";
+            $result = mysqli_query($dbLink, $sqlCommand);
+            while($oneRow = mysqli_fetch_assoc($result)) {
+                $allData[] = $oneRow;
+            }
+            echo json_encode($allData);
         }
     }
 
