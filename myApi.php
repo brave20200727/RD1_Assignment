@@ -28,7 +28,7 @@
         public $locationName;
         public $geoCode;
     }
-    class CweatherOfCity
+    class WeatherOfCity
     {
         public $geoCode;
         public $startTime;
@@ -64,7 +64,6 @@
             multiLine;
             mysqli_query($dbLink, $sqlCommand);
         }
-        mysqli_close($dbLink);
     }
 
     function getAllCities() {
@@ -74,7 +73,6 @@
             $allData[] = $row;
         }
         echo json_encode($allData);
-        mysqli_close($dbLink);
     }
 
     function getWeatherInfoFromInternet() {
@@ -87,7 +85,7 @@
         $data = json_decode($result);
         curl_close($ch);
         for($i = 0; $i < count($data->records->locations[0]->location); $i++) {
-            $oneCityWeather = new CweatherOfCity();
+            $oneCityWeather = new WeatherOfCity();
             $oneCityWeather->geoCode = $data->records->locations[0]->location[$i]->geocode;
             for($j = 0; $j < 14; $j++){
                 $oneCityWeather->startTime[] = $data->records->locations[0]->location[$i]->weatherElement[0]->time[$j]->startTime;
@@ -134,7 +132,6 @@
             echo $sqlCommand . "<br>";
             mysqli_query($dbLink, $sqlCommand);
         }
-        mysqli_close($dbLink);
     }
 
     function getRainInfoFromInternet() {
@@ -144,8 +141,25 @@
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $result = curl_exec($ch);
-        $data = json_decode($result);
+        $rainData = json_decode($result);
         curl_close($ch);
-        var_dump($data);
+        $allRainData = $rainData->records->location;
+        foreach($allRainData AS $oneRainData) {
+            $cityName = $oneRainData->parameter[0]->parameterValue;
+            $locationName = $oneRainData->locationName;
+            $hour_3 = $oneRainData->weatherElement[3]->elementValue;
+            $hour_6 = $oneRainData->weatherElement[4]->elementValue;
+            $hour_12 = $oneRainData->weatherElement[5]->elementValue;
+            $hour_24 = $oneRainData->weatherElement[6]->elementValue;
+            $now = $oneRainData->weatherElement[7]->elementValue;
+            $obsTime = $oneRainData->time->obsTime;
+            $sqlCommand = <<< multiLine
+                REPLACE INTO rain(cityId, locationName, hour_3, hour_6, hour_12, hour_24, now, obsTime)
+                VALUE ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$locationName', $hour_3, $hour_6, $hour_12, $hour_24, $now, '$obsTime')
+            multiLine;
+            // echo $sqlCommand . "<br>";
+            mysqli_query($dbLink, $sqlCommand);
+        }
     }
+    mysqli_close($dbLink);
 ?>
