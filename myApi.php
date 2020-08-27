@@ -6,20 +6,22 @@
     // getAllCities();
     // getWeatherInfoFromInternet();
     // insertCitis();
-    if($method == "GET") {
-        if(isset($_GET["cityId"])) {
-            $cityId = $_GET["cityId"];
-            $sqlCommand = "SELECT * FROM weathers WHERE cityId = '$cityId'";
-            $result = mysqli_query($dbLink, $sqlCommand);
-            while($oneRow = mysqli_fetch_assoc($result)) {
-                $allData[] = $oneRow;
-            }
-            echo json_encode($allData);
-        }
-        else {
-            getAllCities();
-        }
-    }
+    getRainInfoFromInternet();
+
+    // if($method == "GET") {
+    //     if(isset($_GET["cityId"])) {
+    //         $cityId = $_GET["cityId"];
+    //         $sqlCommand = "SELECT * FROM weathers WHERE cityId = '$cityId' AND startTime >= CURDATE()";
+    //         $result = mysqli_query($dbLink, $sqlCommand);
+    //         while($oneRow = mysqli_fetch_assoc($result)) {
+    //             $allData[] = $oneRow;
+    //         }
+    //         echo json_encode($allData);
+    //     }
+    //     else {
+    //         getAllCities();
+    //     }
+    // }
 
     class City
     {
@@ -58,7 +60,7 @@
             $oneCity->geoCode = $data->records->locations[0]->location[$i]->geocode;
             var_dump($oneCity);
             $sqlCommand = <<<multiLine
-                INSERT INTO cities(cityId, cityName) VALUE ($oneCity->geoCode, '$oneCity->locationName')
+                INSERT INTO cities(cityId, cityName) VALUE ('$oneCity->geoCode', '$oneCity->locationName')
             multiLine;
             mysqli_query($dbLink, $sqlCommand);
         }
@@ -133,5 +135,17 @@
             mysqli_query($dbLink, $sqlCommand);
         }
         mysqli_close($dbLink);
+    }
+
+    function getRainInfoFromInternet() {
+        global $dbLink;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0002-001?Authorization=CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65&format=JSON");
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $result = curl_exec($ch);
+        $data = json_decode($result);
+        curl_close($ch);
+        var_dump($data);
     }
 ?>

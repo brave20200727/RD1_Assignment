@@ -17,15 +17,13 @@
 <body>
   <div class="container">
     <div class="row">
-      <div class="col-6">
+      <div>
         <select id="citySelected" name="citySelected"></select>
       </div>
+      <div style="color: red;" id="citySelectedErr"></div>
     </div>
-    <div class="row" id="threeDaysWeather">
-      <div class="col-3" style="background-color: lightblue;" id="today"></div>
-      <div class="col-3" style="background-color: lightblue;" id="tomorrow"></div>
-      <div class="col-3" style="background-color: lightblue;" id="afterTomorrow"></div>
-    </div>
+    <div class="row" id="threeDaysWeather"></div>
+    <div class="row" id="oneWeekWeather"></div>
   </div>
 </body>
 
@@ -48,42 +46,57 @@
 
     $("#citySelected").on("change", function() {
       let cityId = $("#citySelected").prop('value');
-      $.ajax({
-        type: "GET",
-        url: `myApi.php?cityId=${cityId}`
-      }).then(function(dataFromServer){
-        let data = JSON.parse(dataFromServer);
-        console.log(data);
-        $("#today").empty();
-        $("#tomorrow").empty();
-        $("#afterTomorrow").empty();
-        $("#today").append("時間: " + data[0].startTime + "<br>");
-        $("#today").append(data[0].wx + "<br>");
-        $("#today").append("溫度: " + data[0].minT + " - " + data[0].maxT + " 攝氏度<br>");
-        $("#today").append("體感溫度: " + data[0].minAT + " - " + data[0].maxAT + " 攝氏度<br>");
-        $("#today").append("降雨機率: " + data[0].pop12h + " %<br>");
-        $("#today").append("風速: " + data[0].ws1 + " 級風<br>");
-        $("#today").append("風向: " + data[0].wd);
-
-        $("#tomorrow").append("時間: " + data[2].startTime + "<br>");
-        $("#tomorrow").append(data[2].wx + "<br>");
-        $("#tomorrow").append("溫度: " + data[2].minT + " - " + data[2].maxT + " 攝氏度<br>");
-        $("#tomorrow").append("體感溫度: " + data[2].minAT + " - " + data[2].maxAT + " 攝氏度<br>");
-        $("#tomorrow").append("降雨機率: " + data[2].pop12h + " %<br>");
-        $("#tomorrow").append("風速: " + data[2].ws1 + " 級風<br>");
-        $("#tomorrow").append("風向: " + data[2].wd);
-
-        $("#afterTomorrow").append("時間: " + data[4].startTime + "<br>");
-        $("#afterTomorrow").append(data[4].wx + "<br>");
-        $("#afterTomorrow").append("溫度: " + data[4].minT + " - " + data[4].maxT + " 攝氏度<br>");
-        $("#afterTomorrow").append("體感溫度: " + data[4].minAT + " - " + data[4].maxAT + " 攝氏度<br>");
-        $("#afterTomorrow").append("降雨機率: " + data[4].pop12h + " %<br>");
-        $("#afterTomorrow").append("風速: " + data[4].ws1 + " 級風<br>");
-        $("#afterTomorrow").append("風向: " + data[4].wd);
-      }).catch(function(e){
-
-      })
-    })
+      if(cityId == "-1") {
+        $("#citySelectedErr").html("請選擇城市");
+        $("#threeDaysWeather").empty();
+        $("#oneWeekWeather").empty();
+      }
+      else{
+        $.ajax({
+          type: "GET",
+          url: `myApi.php?cityId=${cityId}`
+        }).then(function(dataFromServer){
+          let data = JSON.parse(dataFromServer);
+          console.log(data);
+          $("#threeDaysWeather").empty();
+          $("#citySelectedErr").html("");
+          for(let i = 0; i < 6; i += 2) {
+            let date = new Date(data[i].startTime);
+            let oneDay = $("<div></div>")
+            .append(
+              (date.getMonth()+1) + "/" + date.getDate() + "<br>" + 
+              data[i].wx + "<br>" +
+              "溫度: " + data[i].minT + "度 - " + data[i].maxT + "度<br>" +
+              "體感溫度: " + data[i].minAT + "度 - " + data[i].maxAT + "度<br>" +
+              "降雨機率: " + data[i].pop12h + " %<br>" +
+              "風速: " + data[i].ws1 + " 級風<br>" +
+              "風向: " + data[i].wd
+            )
+            .css("background-color", "lightblue")
+            .prop("class", "col-3");
+            $("#threeDaysWeather").append(oneDay);
+          }
+          $("#oneWeekWeather").empty();
+          for(let i = 0; i < 14; i += 2) {
+            let date = new Date(data[i].startTime);
+            let oneDay = $("<div></div>")
+            .append(
+              (date.getMonth()+1) + "/" + date.getDate() + "<br>" +
+              data[i].wx + "<br>" +
+              "溫度: " + data[i].minT + "度 - " + data[i].maxT + "度<br>" +
+              "體感溫度: " + data[i].minAT + "度 - " + data[i].maxAT + "度<br>" +
+              "降雨機率: " + data[i].pop12h + " %<br>" +
+              "風速: " + data[i].ws1 + " 級風<br>" +
+              "風向: " + data[i].wd
+            )
+            .css({"background-color": "lightgreen", "font-size": "15px"});
+            $("#oneWeekWeather").append(oneDay);
+          }
+        }).catch(function(e){
+          console.log(e.message);
+        });        
+      }
+    });
   });
 </script>
 
