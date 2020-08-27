@@ -3,6 +3,68 @@
     $dbLink = mysqli_connect("localhost", "root", "root", "RD1_Assignment", 8889) or die(mysqli_connect_error());
     mysqli_query($dbLink, "set names utf8");
 
+    // getAllCities();
+    // getWeatherInfoFromInternet();
+    // insertCitis();
+    if($method == "GET") {
+        if(isset($_GET["cityId"])) {
+            $cityId = $_GET["cityId"];
+            $sqlCommand = "SELECT * FROM weathers WHERE cityId = '$cityId'";
+            $result = mysqli_query($dbLink, $sqlCommand);
+            while($oneRow = mysqli_fetch_assoc($result)) {
+                $allData[] = $oneRow;
+            }
+            echo json_encode($allData);
+        }
+        else {
+            getAllCities();
+        }
+    }
+
+    class City
+    {
+        public $locationName;
+        public $geoCode;
+    }
+    class CweatherOfCity
+    {
+        public $geoCode;
+        public $startTime;
+        public $endTime;
+        public $PoP12H;
+        public $RH;
+        public $WS1;
+        public $WS2;
+        public $WD;
+        public $Wx;
+        public $MaxAT;
+        public $MinAT;
+        public $MaxT;
+        public $MinT;
+    }
+
+    function insertCitis() {
+        global $dbLink;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, "https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-091?Authorization=CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65&format=JSON&sort=time");
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $result = curl_exec($ch);
+        $data = json_decode($result);
+        curl_close($ch);
+        for($i = 0; $i < count($data->records->locations[0]->location); $i++) {
+            $oneCity = new City();
+            $oneCity->locationName = $data->records->locations[0]->location[$i]->locationName;
+            $oneCity->geoCode = $data->records->locations[0]->location[$i]->geocode;
+            var_dump($oneCity);
+            $sqlCommand = <<<multiLine
+                INSERT INTO cities(cityId, cityName) VALUE ($oneCity->geoCode, '$oneCity->locationName')
+            multiLine;
+            mysqli_query($dbLink, $sqlCommand);
+        }
+        mysqli_close($dbLink);
+    }
+
     function getAllCities() {
         global $dbLink;
         $result = mysqli_query($dbLink, "SELECT * FROM cities");
@@ -13,260 +75,63 @@
         mysqli_close($dbLink);
     }
 
-    function getOneCity() {
-        global $dbLink;
-        $cityId = $_GET["cityId"];
-        $sqlCommand = "SELECT cityName FROM cities WHERE cityId = $cityId";
-        $result = mysqli_query($dbLink, $sqlCommand);
-        $row = mysqli_fetch_assoc($result);
-        echo json_encode($row);
-        mysqli_close($dbLink);
-    }
-
-    function getWeatherInfoForInternet() {
+    function getWeatherInfoFromInternet() {
         global $dbLink;
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, "https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-091?Authorization=CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65&format=JSON&sort=time");
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $result = curl_exec($ch);
-        $answer = json_decode($result);
-        // var_dump($answer->records->locations[0]);
-        // $cityWeather = $answer->records->locations[0]->location[0];
-        // $cityName = $cityWeather->locationName;
-
-        $allCityWeather = $answer->records->locations[0]->location;
-        for($i = 0; $i < count($allCityWeather); $i++) {
-            $cityName = $allCityWeather[$i]->locationName;
-            $weatherElementPoP12H = $allCityWeather[$i]->weatherElement[0]; // 12小時降雨機率
-            $weatherElementRH = $allCityWeather[$i]->weatherElement[2]; // 平均相對濕度
-            $weatherElementWS = $allCityWeather[$i]->weatherElement[4]; // 風速
-            $weatherElementWD = $allCityWeather[$i]->weatherElement[13]; // 風向
-            $weatherElementMaxAT = $allCityWeather[$i]->weatherElement[5]; // 最高體感溫度
-            $weatherElementMinAT = $allCityWeather[$i]->weatherElement[11]; // 最低體感溫度
-            $weatherElementMaxT = $allCityWeather[$i]->weatherElement[12]; // 最高溫度
-            $weatherElementMinT = $allCityWeather[$i]->weatherElement[8]; // 最低溫度
-            $weatherElementWx = $allCityWeather[$i]->weatherElement[6]; // 天氣現象
-
-            $allWeatherElementPoP12H = $weatherElementPoP12H->time;
-            foreach($allWeatherElementPoP12H AS $oneRow) {
-                $oneRowData['locationName'] = $cityName;
-                $oneRowData['startTime'] = $oneRow->startTime;
-                $oneRowData['endTime'] = $oneRow->endTime;
-                if($oneRow->elementValue[0]->value == " ") {
-                    $oneRowData['PoP12H'] = '0';
+        $data = json_decode($result);
+        curl_close($ch);
+        for($i = 0; $i < count($data->records->locations[0]->location); $i++) {
+            $oneCityWeather = new CweatherOfCity();
+            $oneCityWeather->geoCode = $data->records->locations[0]->location[$i]->geocode;
+            for($j = 0; $j < 14; $j++){
+                $oneCityWeather->startTime[] = $data->records->locations[0]->location[$i]->weatherElement[0]->time[$j]->startTime;
+                $oneCityWeather->endTime[] = $data->records->locations[0]->location[$i]->weatherElement[0]->time[$j]->endTime;
+                if($data->records->locations[0]->location[$i]->weatherElement[0]->time[$j]->elementValue[0]->value == " ") {
+                    $oneCityWeather->PoP12H[] = "0";
                 }
                 else {
-                    $oneRowData['PoP12H'] = $oneRow->elementValue[0]->value;
+                    $oneCityWeather->PoP12H[] = $data->records->locations[0]->location[$i]->weatherElement[0]->time[$j]->elementValue[0]->value;
                 }
-
-                $allData[] = $oneRowData;
+                $oneCityWeather->RH[] = $data->records->locations[0]->location[$i]->weatherElement[2]->time[$j]->elementValue[0]->value;
+                $oneCityWeather->WS1[] = $data->records->locations[0]->location[$i]->weatherElement[4]->time[$j]->elementValue[0]->value;
+                $oneCityWeather->WS2[] = $data->records->locations[0]->location[$i]->weatherElement[4]->time[$j]->elementValue[1]->value;
+                $oneCityWeather->MaxAT[] = $data->records->locations[0]->location[$i]->weatherElement[5]->time[$j]->elementValue[0]->value;
+                $oneCityWeather->Wx[] = $data->records->locations[0]->location[$i]->weatherElement[6]->time[$j]->elementValue[0]->value;
+                $oneCityWeather->MinT[] = $data->records->locations[0]->location[$i]->weatherElement[8]->time[$j]->elementValue[0]->value;
+                $oneCityWeather->MinAT[] = $data->records->locations[0]->location[$i]->weatherElement[11]->time[$j]->elementValue[0]->value;
+                $oneCityWeather->MaxT[] = $data->records->locations[0]->location[$i]->weatherElement[12]->time[$j]->elementValue[0]->value;
+                $oneCityWeather->WD[] = $data->records->locations[0]->location[$i]->weatherElement[13]->time[$j]->elementValue[0]->value;
             }
-            // $allWeatherElementRH = $weatherElementRH->time;
-            // for($i = 0; $i < count($allWeatherElementRH); $i++) {
-            //     $allData[$i]['RH'] = $allWeatherElementRH[$i]->elementValue[0]->value;
-            // }
-            // $allWeatherElementWS = $weatherElementWS->time;
-            // for($i = 0; $i < count($allWeatherElementWS); $i++) {
-            //     $allData[$i]['WS1'] = $allWeatherElementWS[$i]->elementValue[0]->value;
-            //     $allData[$i]['WS2'] = $allWeatherElementWS[$i]->elementValue[1]->value;
-            // }
-            // $allWeatherElementWD = $weatherElementWD->time;
-            // for($i = 0; $i < count($allWeatherElementWD); $i++) {
-            //     $allData[$i]['WD'] = $allWeatherElementWD[$i]->elementValue[0]->value;
-            // }
-            // $allWeatherElementMaxAT = $weatherElementMaxAT->time;
-            // for($i = 0; $i < count($allWeatherElementMaxAT); $i++) {
-            //     $allData[$i]['MaxAT'] = $allWeatherElementMaxAT[$i]->elementValue[0]->value;
-            // }
-            // $allWeatherElementMinAT = $weatherElementMinAT->time;
-            // for($i = 0; $i < count($allWeatherElementMinAT); $i++) {
-            //     $allData[$i]['MinAT'] = $allWeatherElementMinAT[$i]->elementValue[0]->value;
-            // }
-            // $allWeatherElementMaxT = $weatherElementMaxT->time;
-            // for($i = 0; $i < count($allWeatherElementMaxT); $i++) {
-            //     $allData[$i]['MaxT'] = $allWeatherElementMaxT[$i]->elementValue[0]->value;
-            // }
-            // $allWeatherElementMinT = $weatherElementMinT->time;
-            // for($i = 0; $i < count($allWeatherElementMinT); $i++) {
-            //     $allData[$i]['MinT'] = $allWeatherElementMinT[$i]->elementValue[0]->value;
-            // }
-            // $allWeatherElementWx = $weatherElementWx->time;
-            // for($i = 0; $i < count($allWeatherElementWx); $i++) {
-            //     $allData[$i]['Wx'] = $allWeatherElementWx[$i]->elementValue[0]->value;
-            // }
-            
-            $allData = array();
+            // var_dump($oneCityWeather);
+            $cityId = $oneCityWeather->geoCode;
+            $sqlCommand = "REPLACE INTO weathers(cityId, maxAT, maxT, minAT, minT, pop12h, rh, wd, ws1, ws2, wx, startTime, endTime) VALUES";
+            for($j = 0; $j < 14; $j++) {
+                $startTime = $oneCityWeather->startTime[$j];
+                $endTime = $oneCityWeather->endTime[$j];
+                $PoP12H = $oneCityWeather->PoP12H[$j];
+                $RH = $oneCityWeather->RH[$j];
+                $WS1 = $oneCityWeather->WS1[$j];
+                $WS2 = $oneCityWeather->WS2[$j];
+                $MaxAT = $oneCityWeather->MaxAT[$j];
+                $MinAT = $oneCityWeather->MinAT[$j];
+                $Wx = $oneCityWeather->Wx[$j];
+                $MaxT = $oneCityWeather->MaxT[$j];
+                $MinT = $oneCityWeather->MinT[$j];
+                $WD = $oneCityWeather->WD[$j];
+                if($j == 0) {
+                    $sqlCommand = $sqlCommand . " ('$cityId', $MaxAT, $MaxT, $MinAT, $MinT, $PoP12H, $RH, '$WD', '$WS1', '$WS2', '$Wx', '$startTime', '$endTime')";
+                }
+                else{
+                    $sqlCommand = $sqlCommand . ", ('$cityId', $MaxAT, $MaxT, $MinAT, $MinT, $PoP12H, $RH, '$WD', '$WS1', '$WS2', '$Wx', '$startTime', '$endTime')";
+                }
+            }
+            echo $sqlCommand . "<br>";
+            mysqli_query($dbLink, $sqlCommand);
         }
-        var_dump($allData[0]);
-
-        // $weatherElementPoP12H = $cityWeather->weatherElement[0]; // 12小時降雨機率
-        // $weatherElementRH = $cityWeather->weatherElement[2]; // 平均相對濕度
-        // $weatherElementWS = $cityWeather->weatherElement[4]; // 風速
-        // $weatherElementWD = $cityWeather->weatherElement[13]; // 風向
-        // $weatherElementMaxAT = $cityWeather->weatherElement[5]; // 最高體感溫度
-        // $weatherElementMinAT = $cityWeather->weatherElement[11]; // 最低體感溫度
-        // $weatherElementMaxT = $cityWeather->weatherElement[12]; // 最高溫度
-        // $weatherElementMinT = $cityWeather->weatherElement[8]; // 最低溫度
-        // $weatherElementWx = $cityWeather->weatherElement[6]; // 天氣現象
-
-        // $allWeatherElementPoP12H = $weatherElementPoP12H->time;
-        // foreach($allWeatherElementPoP12H AS $oneRow) {
-        //     $oneRowData['locationName'] = $cityName;
-        //     $oneRowData['startTime'] = $oneRow->startTime;
-        //     $oneRowData['endTime'] = $oneRow->endTime;
-        //     if($oneRow->elementValue[0]->value == " ") {
-        //         $oneRowData['PoP12H'] = '0';
-        //     }
-        //     else {
-        //         $oneRowData['PoP12H'] = $oneRow->elementValue[0]->value;
-        //     }
-
-        //     $allData[] = $oneRowData;
-        // }
-        // $allWeatherElementRH = $weatherElementRH->time;
-        // for($i = 0; $i < count($allWeatherElementRH); $i++) {
-        //     $allData[$i]['RH'] = $allWeatherElementRH[$i]->elementValue[0]->value;
-        // }
-        // $allWeatherElementWS = $weatherElementWS->time;
-        // for($i = 0; $i < count($allWeatherElementWS); $i++) {
-        //     $allData[$i]['WS1'] = $allWeatherElementWS[$i]->elementValue[0]->value;
-        //     $allData[$i]['WS2'] = $allWeatherElementWS[$i]->elementValue[1]->value;
-        // }
-        // $allWeatherElementWD = $weatherElementWD->time;
-        // for($i = 0; $i < count($allWeatherElementWD); $i++) {
-        //     $allData[$i]['WD'] = $allWeatherElementWD[$i]->elementValue[0]->value;
-        // }
-        // $allWeatherElementMaxAT = $weatherElementMaxAT->time;
-        // for($i = 0; $i < count($allWeatherElementMaxAT); $i++) {
-        //     $allData[$i]['MaxAT'] = $allWeatherElementMaxAT[$i]->elementValue[0]->value;
-        // }
-        // $allWeatherElementMinAT = $weatherElementMinAT->time;
-        // for($i = 0; $i < count($allWeatherElementMinAT); $i++) {
-        //     $allData[$i]['MinAT'] = $allWeatherElementMinAT[$i]->elementValue[0]->value;
-        // }
-        // $allWeatherElementMaxT = $weatherElementMaxT->time;
-        // for($i = 0; $i < count($allWeatherElementMaxT); $i++) {
-        //     $allData[$i]['MaxT'] = $allWeatherElementMaxT[$i]->elementValue[0]->value;
-        // }
-        // $allWeatherElementMinT = $weatherElementMinT->time;
-        // for($i = 0; $i < count($allWeatherElementMinT); $i++) {
-        //     $allData[$i]['MinT'] = $allWeatherElementMinT[$i]->elementValue[0]->value;
-        // }
-        // $allWeatherElementWx = $weatherElementWx->time;
-        // for($i = 0; $i < count($allWeatherElementWx); $i++) {
-        //     $allData[$i]['Wx'] = $allWeatherElementWx[$i]->elementValue[0]->value;
-        // }
-
-        // var_dump($allData);
-
-        // $elementArray = $weatherElementPoP12H->time;
-        // foreach($elementArray AS $oneElement) {
-        //     $startTime = $oneElement->startTime;
-        //     $endTime = $oneElement->endTime;
-        //     $elementValue = $oneElement->elementValue[0]->value;
-        //     if($elementValue == " ") {
-        //         $elementValue = 0;
-        //     }
-        //     $elementUnit = $oneElement->elementValue[0]->measures;
-        //     $sqlCommand = "REPLACE INTO PoP12H(cityId, startTime, endTime, elementValue, unit) VALUES ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$startTime', '$endTime', $elementValue, '$elementUnit')";
-        //     mysqli_query($dbLink, $sqlCommand);
-        // }
-        // $elementArray = $weatherElementRH->time;
-        // // var_dump($elementArray);
-        // foreach($elementArray AS $oneElement) {
-        //     $startTime = $oneElement->startTime;
-        //     $endTime = $oneElement->endTime;
-        //     $elementValue = $oneElement->elementValue[0]->value;
-        //     $elementUnit = $oneElement->elementValue[0]->measures;
-        //     $sqlCommand = "REPLACE INTO RH(cityId, startTime, endTime, elementValue, unit) VALUES ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$startTime', '$endTime', $elementValue, '$elementUnit')";
-        //     mysqli_query($dbLink, $sqlCommand);
-        // }
-        // $elementArray = $weatherElementWS->time;
-        // // var_dump($elementArray);
-        // foreach($elementArray AS $oneElement) {
-        //     $startTime = $oneElement->startTime;
-        //     $endTime = $oneElement->endTime;
-        //     $elementValue = $oneElement->elementValue[0]->value;
-        //     $elementUnit = $oneElement->elementValue[0]->measures;
-        //     $elementValue2 = $oneElement->elementValue[1]->value;
-        //     $elementUnit2 = $oneElement->elementValue[1]->measures;
-        //     $sqlCommand = "REPLACE INTO WS(cityId, startTime, endTime, elementValue, unit, elementValue2, unit2) VALUES ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$startTime', '$endTime', $elementValue, '$elementUnit', $elementValue2, '$elementUnit2')";
-        //     mysqli_query($dbLink, $sqlCommand);
-        // }
-        // $elementArray = $weatherElementWD->time;
-        // // var_dump($elementArray);
-        // foreach($elementArray AS $oneElement) {
-        //     $startTime = $oneElement->startTime;
-        //     $endTime = $oneElement->endTime;
-        //     $elementValue = $oneElement->elementValue[0]->value;
-        //     $elementUnit = $oneElement->elementValue[0]->measures;
-        //     $sqlCommand = "REPLACE INTO WD(cityId, startTime, endTime, elementValue, unit) VALUES ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$startTime', '$endTime', '$elementValue', '$elementUnit')";
-        //     mysqli_query($dbLink, $sqlCommand);
-        // }
-        // $elementArray = $weatherElementMaxAT->time;
-        // // var_dump($elementArray);
-        // foreach($elementArray AS $oneElement) {
-        //     $startTime = $oneElement->startTime;
-        //     $endTime = $oneElement->endTime;
-        //     $elementValue = $oneElement->elementValue[0]->value;
-        //     $elementUnit = $oneElement->elementValue[0]->measures;
-        //     $sqlCommand = "REPLACE INTO MaxAT(cityId, startTime, endTime, elementValue, unit) VALUES ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$startTime', '$endTime', $elementValue, '$elementUnit')";
-        //     mysqli_query($dbLink, $sqlCommand);
-        // }
-        // $elementArray = $weatherElementMinAT->time;
-        // // var_dump($elementArray);
-        // foreach($elementArray AS $oneElement) {
-        //     $startTime = $oneElement->startTime;
-        //     $endTime = $oneElement->endTime;
-        //     $elementValue = $oneElement->elementValue[0]->value;
-        //     $elementUnit = $oneElement->elementValue[0]->measures;
-        //     $sqlCommand = "REPLACE INTO MinAT(cityId, startTime, endTime, elementValue, unit) VALUES ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$startTime', '$endTime', $elementValue, '$elementUnit')";
-        //     mysqli_query($dbLink, $sqlCommand);
-        // }
-        // $elementArray = $weatherElementMaxT->time;
-        // // var_dump($elementArray);
-        // foreach($elementArray AS $oneElement) {
-        //     $startTime = $oneElement->startTime;
-        //     $endTime = $oneElement->endTime;
-        //     $elementValue = $oneElement->elementValue[0]->value;
-        //     $elementUnit = $oneElement->elementValue[0]->measures;
-        //     $sqlCommand = "REPLACE INTO MaxT(cityId, startTime, endTime, elementValue, unit) VALUES ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$startTime', '$endTime', $elementValue, '$elementUnit')";
-        //     mysqli_query($dbLink, $sqlCommand);
-        // }
-        // $elementArray = $weatherElementMinT->time;
-        // // var_dump($elementArray);
-        // foreach($elementArray AS $oneElement) {
-        //     $startTime = $oneElement->startTime;
-        //     $endTime = $oneElement->endTime;
-        //     $elementValue = $oneElement->elementValue[0]->value;
-        //     $elementUnit = $oneElement->elementValue[0]->measures;
-        //     $sqlCommand = "REPLACE INTO MinT(cityId, startTime, endTime, elementValue, unit) VALUES ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$startTime', '$endTime', $elementValue, '$elementUnit')";
-        //     mysqli_query($dbLink, $sqlCommand);
-        // }
-        // $elementArray = $weatherElementWx->time;
-        // // var_dump($elementArray);
-        // foreach($elementArray AS $oneElement) {
-        //     $startTime = $oneElement->startTime;
-        //     $endTime = $oneElement->endTime;
-        //     $elementValue = $oneElement->elementValue[0]->value;
-        //     $sqlCommand = "REPLACE INTO Wx(cityId, startTime, endTime, elementValue) VALUES ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$startTime', '$endTime', '$elementValue')";
-        //     mysqli_query($dbLink, $sqlCommand);
-        // }
-        // curl_close($ch);
         mysqli_close($dbLink);
     }
-
-    // if($method == "GET") {
-    //     if(isset($_GET["cityId"])) {
-    //         // getWeatherInfoForInternet();
-    //         // getOneCity();
-    //         getDataFromDatabase();
-    //     }
-    //     else {
-    //         getAllCities();
-    //     }
-    // }
-
-    getWeatherInfoForInternet();
 ?>

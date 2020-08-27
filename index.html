@@ -20,120 +20,70 @@
       <div class="col-6">
         <select id="citySelected" name="citySelected"></select>
       </div>
-      <!-- <div class="col-4">
-        <select id="rangeSelected" name="rangeSelected"></select>
-      </div> -->
-      <!-- <div class="col-6">
-        <button id="okButton">確定</button>
-      </div>     -->
     </div>
-
-    <div class="row">
-      <div id="firstWeather" class="col-3"></div>
-      <div id="secondWeather" class="col-3"></div>
-      <div id="thirdWeather" class="col-3"></div>
+    <div class="row" id="threeDaysWeather">
+      <div class="col-3" style="background-color: lightblue;" id="today"></div>
+      <div class="col-3" style="background-color: lightblue;" id="tomorrow"></div>
+      <div class="col-3" style="background-color: lightblue;" id="afterTomorrow"></div>
     </div>
   </div>
 </body>
 
 <script>
-
-  // 近一週的資料抓取
-  function get1WeekWeather(data) {
-    let locationData = data.records.locations[0].location; // 縣市中各區的資料
-    for(let item of locationData) { // 將各個區都跑過一輪 並且將資料給抓出來
-      $("#resultDiv").append("<h3>" + item.locationName + "</h3>");
-      $("#resultDiv").append("<h5>" + item.weatherElement[10].description + "</h5>");
-      for(let timeItem of item.weatherElement[10].time) {
-        $("#resultDiv").append(timeItem.startTime + "&nbsp;&nbsp;&nbsp;&nbsp;");
-        $("#resultDiv").append(timeItem.endTime + "<br>");
-        $("#resultDiv").append(timeItem.elementValue[0].value + "<br>");
-      }
-      $("#resultDiv").append("<hr>");
-    }
-  }
-
   $(document).ready(function () {
-    let key = "CWB-237F0446-FCE5-4CD0-A343-4C4B52E42D65";
-    $("#citySelected").append($("<option></option>").prop("value", -1).append("--"));
     $.ajax({
-      type: "get",
+      type: "GET",
       url: "myApi.php"
-    }).then(function(dataForServer) {
-      let answer = JSON.parse(dataForServer);
-      for(let city of answer) {
-        let oneCity = $("<option></option>").prop("value", city.cityId).append(city.cityName);
-        $("#citySelected").append(oneCity);
-      };
+    }).then(function(dataFromServer) {
+      let data = JSON.parse(dataFromServer);
+      console.log(data);
+      $("#citySelected").append("<option value='-1' selected>--</option>");
+      for(let oneData of data) {
+        let appendItem = $("<option></option>").prop("value", oneData["cityId"]).append(oneData["cityName"]);
+        $("#citySelected").append(appendItem);
+      }
     }).catch(function(e) {
-      console.log(e.message);
+      console.log(e);
     })
 
-    // let userCityName = ""; // 用來儲存使用者所選的城市名
-    $("#citySelected").on("change", function(){
-      let cityId = $("#citySelected").prop("value");
-      // console.log(cityId);
+    $("#citySelected").on("change", function() {
+      let cityId = $("#citySelected").prop('value');
       $.ajax({
-        type: "get",
+        type: "GET",
         url: `myApi.php?cityId=${cityId}`
-      }).then(function(dataForServer) {
-        // let answer = JSON.parse(dataForServer);
-        // console.log(answer);
-        // userCityName = answer.cityName;
-        // console.log(userCityName);
+      }).then(function(dataFromServer){
+        let data = JSON.parse(dataFromServer);
+        console.log(data);
+        $("#today").empty();
+        $("#tomorrow").empty();
+        $("#afterTomorrow").empty();
+        $("#today").append("時間: " + data[0].startTime + "<br>");
+        $("#today").append(data[0].wx + "<br>");
+        $("#today").append("溫度: " + data[0].minT + " - " + data[0].maxT + " 攝氏度<br>");
+        $("#today").append("體感溫度: " + data[0].minAT + " - " + data[0].maxAT + " 攝氏度<br>");
+        $("#today").append("降雨機率: " + data[0].pop12h + " %<br>");
+        $("#today").append("風速: " + data[0].ws1 + " 級風<br>");
+        $("#today").append("風向: " + data[0].wd);
 
-      }).catch(function(e) {
-        console.log(e.message);
+        $("#tomorrow").append("時間: " + data[2].startTime + "<br>");
+        $("#tomorrow").append(data[2].wx + "<br>");
+        $("#tomorrow").append("溫度: " + data[2].minT + " - " + data[2].maxT + " 攝氏度<br>");
+        $("#tomorrow").append("體感溫度: " + data[2].minAT + " - " + data[2].maxAT + " 攝氏度<br>");
+        $("#tomorrow").append("降雨機率: " + data[2].pop12h + " %<br>");
+        $("#tomorrow").append("風速: " + data[2].ws1 + " 級風<br>");
+        $("#tomorrow").append("風向: " + data[2].wd);
+
+        $("#afterTomorrow").append("時間: " + data[4].startTime + "<br>");
+        $("#afterTomorrow").append(data[4].wx + "<br>");
+        $("#afterTomorrow").append("溫度: " + data[4].minT + " - " + data[4].maxT + " 攝氏度<br>");
+        $("#afterTomorrow").append("體感溫度: " + data[4].minAT + " - " + data[4].maxAT + " 攝氏度<br>");
+        $("#afterTomorrow").append("降雨機率: " + data[4].pop12h + " %<br>");
+        $("#afterTomorrow").append("風速: " + data[4].ws1 + " 級風<br>");
+        $("#afterTomorrow").append("風向: " + data[4].wd);
+      }).catch(function(e){
+
       })
-      // console.log(userCity);
-
-      // $("#firstWeather").empty();
-      // $("#secondWeather").empty();
-      // $("#thirdWeather").empty();
-      // $.ajax({
-      //   type: "get",
-      //   url: `myApi.php?cityId=${cityId}`
-      // }).then(function(data) {
-      //   // console.log(data);
-      //   // let answer = JSON.parse(data);
-      //   // console.log(answer);
-      //   // let cityWeatherInfo = answer.records.locations[0].location; // 抓出個縣市36小時內天氣資料的array
-      //   let cityWeatherInfo = data.records.locations[0].location;
-      //   // console.log(cityWeatherInfo);
-      //   let userCity;
-      //   for(let city of cityWeatherInfo) {
-      //     if(city.locationName == userCityName) {
-      //       userCity = city;
-      //     }
-      //   }
-      //   console.log(userCity);
-      // }).catch(function(e) {
-      //   console.log(e.message);
-      // })
-    });
-
-    // 按下確定鍵就會進行資料的抓取以及顯示在網頁上面
-    // $("#okButton").on("click", function () {
-    //   $("#resultDiv").empty();
-    //   let dataPool = Number($("#citySelected").prop("value")) + Number($("#rangeSelected").prop("value"));
-    //   if (dataPool < 10) {
-    //     dataPool = "00" + dataPool;
-    //   }
-    //   else if (dataPool < 100) {
-    //     dataPool = "0" + dataPool;
-    //   }
-    //   // $("#resultDiv").text(dataPos);
-    //   $.ajax({
-    //     type: "get",
-    //     url: `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-${dataPool}?Authorization=${key}`
-    //   }).then(function (data) {
-    //     console.log(data.records.locations[0].location);
-    //     let rangeValue = $("#rangeSelected").prop("value");
-    //     get1WeekWeather(data);
-    //   }).catch(function (e) {
-    //     console.log(e.message);
-    //   });
-    // });
+    })
   });
 </script>
 
