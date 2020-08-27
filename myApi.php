@@ -3,25 +3,37 @@
     $dbLink = mysqli_connect("localhost", "root", "root", "RD1_Assignment", 8889) or die(mysqli_connect_error());
     mysqli_query($dbLink, "set names utf8");
 
-    // getAllCities();
-    // getWeatherInfoFromInternet();
-    // insertCitis();
-    getRainInfoFromInternet();
+    // var_dump($_GET);
 
-    // if($method == "GET") {
-    //     if(isset($_GET["cityId"])) {
-    //         $cityId = $_GET["cityId"];
-    //         $sqlCommand = "SELECT * FROM weathers WHERE cityId = '$cityId' AND startTime >= CURDATE()";
-    //         $result = mysqli_query($dbLink, $sqlCommand);
-    //         while($oneRow = mysqli_fetch_assoc($result)) {
-    //             $allData[] = $oneRow;
-    //         }
-    //         echo json_encode($allData);
-    //     }
-    //     else {
-    //         getAllCities();
-    //     }
-    // }
+    if($method == "GET") {
+        if(isset($_GET["getRainDataFromServer"])) {
+            $cityId = $_GET["cityId"];
+            $sqlCommand = "SELECT * FROM rain WHERE cityId = '$cityId'";
+            $result = mysqli_query($dbLink, $sqlCommand);
+            while($oneRow = mysqli_fetch_assoc($result)) {
+                $allData[] = $oneRow;
+            }
+            echo json_encode($allData);
+        }
+        else if(isset($_GET["cityId"])) {
+            $cityId = $_GET["cityId"];
+            $sqlCommand = "SELECT * FROM weathers WHERE cityId = '$cityId' AND startTime >= CURDATE()";
+            $result = mysqli_query($dbLink, $sqlCommand);
+            while($oneRow = mysqli_fetch_assoc($result)) {
+                $allData[] = $oneRow;
+            }
+            echo json_encode($allData);
+        }
+        else if(isset($_GET["getRainData"])) {
+            getRainInfoFromInternet();
+        }
+        else if(isset($_GET["getWeatherData"])) {
+            getWeatherInfoFromInternet();
+        }
+        else {
+            getAllCities();
+        }
+    }
 
     class City
     {

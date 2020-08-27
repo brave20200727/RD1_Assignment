@@ -4,10 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>氣象局網站資料</title>
+  <title>氣象資料首頁</title>
   <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
   <script src="node_modules/jquery/dist/jquery.min.js"></script>
   <script src="node_modules/@popperjs/core/dist/umd/popper.min.js"></script>
+  <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
   <style>
     div {
       margin: 5px;
@@ -19,12 +20,81 @@
   <div class="container">
     <div class="row">
       <div>
-        <select id="citySelected" name="citySelected"></select>
+        <select id="citySelected" name="citySelected" class="custom-select"></select>
       </div>
       <div style="color: red;" id="citySelectedErr"></div>
     </div>
-    <div class="row" id="threeDaysWeather"></div>
-    <div class="row" id="oneWeekWeather"></div>
+    <h3>近三天天氣</h3>
+    <div class="card-deck" id="threeDaysWeather">
+      <div class="card bg-primary">
+        <div class="card-body text-center">
+          <p class="card-text">---</p>
+        </div>
+      </div>
+      <div class="card bg-primary">
+        <div class="card-body text-center">
+          <p class="card-text">---</p>
+        </div>
+      </div>
+      <div class="card bg-primary">
+        <div class="card-body text-center">
+          <p class="card-text">---</p>
+        </div>
+      </div>
+    </div>
+    <h3>近一周天氣</h3>
+    <div class="card-group" id="oneWeekWeather">
+      <div class="card bg-success">
+        <div class="card-body text-center">
+          <p class="card-text">---</p>
+        </div>
+      </div>
+      <div class="card bg-success">
+        <div class="card-body text-center">
+          <p class="card-text">---</p>
+        </div>
+      </div>
+      <div class="card bg-success">
+        <div class="card-body text-center">
+          <p class="card-text">---</p>
+        </div>
+      </div>
+      <div class="card bg-success">
+        <div class="card-body text-center">
+          <p class="card-text">---</p>
+        </div>
+      </div>
+      <div class="card bg-success">
+        <div class="card-body text-center">
+          <p class="card-text">---</p>
+        </div>
+      </div>
+      <div class="card bg-success">
+        <div class="card-body text-center">
+          <p class="card-text">---</p>
+        </div>
+      </div>
+      <div class="card bg-success">
+        <div class="card-body text-center">
+          <p class="card-text">---</p>
+        </div>
+      </div>
+    </div>
+    <h3>累積雨量</h3>
+    <div class="row" id="rainData">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>觀測站</th>
+            <th>觀測時間</th>
+            <th>近3小時累積</th>
+            <th>近24小時累積</th>
+          </tr>
+        </thead>
+        <tbody id="rainContent">
+        </tbody>
+      </table>
+    </div>
   </div>
 </body>
 
@@ -35,7 +105,7 @@
       url: "myApi.php"
     }).then(function(dataFromServer) {
       let data = JSON.parse(dataFromServer);
-      console.log(data);
+      // console.log(data);
       $("#citySelected").append("<option value='-1' selected>--</option>");
       for(let oneData of data) {
         let appendItem = $("<option></option>").prop("value", oneData["cityId"]).append(oneData["cityName"]);
@@ -58,12 +128,14 @@
           url: `myApi.php?cityId=${cityId}`
         }).then(function(dataFromServer){
           let data = JSON.parse(dataFromServer);
-          console.log(data);
+          // console.log(data);
           $("#threeDaysWeather").empty();
           $("#citySelectedErr").html("");
           for(let i = 0; i < 6; i += 2) {
             let date = new Date(data[i].startTime);
-            let oneDay = $("<div></div>")
+            let card  = $("<div></div>").prop("class", "card bg-primary");
+            let card_body = $("<div></div>").prop("class", "card-body text-center");
+            let oneDay = $("<p></p>")
             .append(
               (date.getMonth()+1) + "/" + date.getDate() + "<br>" + 
               data[i].wx + "<br>" +
@@ -73,29 +145,50 @@
               "風速: " + data[i].ws1 + " 級風<br>" +
               "風向: " + data[i].wd
             )
-            .css("background-color", "lightblue")
-            .prop("class", "col-3");
-            $("#threeDaysWeather").append(oneDay);
+            .prop("class", "card-text")
+            .css("color", "white");
+            $("#threeDaysWeather").append(card.append(card_body.append(oneDay)));
           }
           $("#oneWeekWeather").empty();
           for(let i = 0; i < 14; i += 2) {
             let date = new Date(data[i].startTime);
-            let oneDay = $("<div></div>")
+            let card  = $("<div></div>").prop("class", "card bg-success");
+            let card_body = $("<div></div>").prop("class", "card-body text-center");
+            let oneDay = $("<p></p>")
             .append(
               (date.getMonth()+1) + "/" + date.getDate() + "<br>" +
               data[i].wx + "<br>" +
-              "溫度: " + data[i].minT + "度 - " + data[i].maxT + "度<br>" +
-              "體感溫度: " + data[i].minAT + "度 - " + data[i].maxAT + "度<br>" +
+              data[i].minT + "度 - " + data[i].maxT + "度<br>" +
               "降雨機率: " + data[i].pop12h + " %<br>" +
               "風速: " + data[i].ws1 + " 級風<br>" +
               "風向: " + data[i].wd
             )
-            .css({"background-color": "lightgreen", "font-size": "15px"});
-            $("#oneWeekWeather").append(oneDay);
+            .prop("class", "card-text")
+            .css({"color": "white", "font-size": "10px"});
+            $("#oneWeekWeather").append(card.append(card_body.append(oneDay)));
           }
         }).catch(function(e){
           console.log(e.message);
-        });        
+        });
+
+        $.ajax({
+          type: "get",
+          url: `myApi.php?getRainDataFromServer=1&cityId=${cityId}`
+        }).then(function(dataFromServer) {
+          let data = JSON.parse(dataFromServer);
+          console.log(data);
+          $("#rainContent").empty();
+          for(oneData of data) {
+            let oneTr = $("<tr></tr>");
+            oneTr.append("<td>" + oneData.locationName + "</td>");
+            oneTr.append("<td>" + oneData.obsTime + "</td>");
+            oneTr.append("<td>" + oneData.hour_3 + "</td>");
+            oneTr.append("<td>" + oneData.hour_24 + "</td>");
+            $("#rainContent").append(oneTr);
+          }
+        }).catch(function(e) {
+          console.log(e.message);
+        });
       }
     });
   });
