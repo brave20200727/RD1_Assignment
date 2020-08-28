@@ -100,6 +100,52 @@
 
 <script>
   $(document).ready(function () {
+    // let date = Date.parse("2020-08-28 09:26:44")/1000;
+    // let date2 = Date.parse("2020-08-28 09:36:44")/1000;
+    // let date3 = Date.parse(new Date())/1000;
+    // alert((date3-date2) > 60*60);
+    // alert((date2-date)/60);
+    let data2Update = {
+      "getWeatherCatchTime": 1,
+      "getRainCatchTime": 1
+    }
+    $.ajax({
+      type: "POST",
+      url: "myApi.php",
+      data: data2Update
+    }).then(function(dataFromServer) {
+      let data = JSON.parse(dataFromServer);
+      // console.log(data);
+      let getRainData = 0;
+      let getWeatherData = 0;
+      let dateWeather = Date.parse(data[0].catchTime)/1000;
+      let dateRain = Date.parse(data[1].catchTime)/1000;
+      let now = Date.parse(new Date())/1000;
+      if((now-dateWeather) > 60*60*24) {
+        getWeatherData = 1;
+      }
+      if((now-dateRain) > 60*10) {
+        getRainData = 1;
+      }
+
+      let data2Server = {
+        "getWeatherData": getWeatherData,
+        "getRainData": getRainData
+      }
+      // console.log(data2Server);
+      $.ajax({
+        type: "POST",
+        url: "myApi.php",
+        data: data2Server
+      }).then(function(dataFromServer) {
+
+      }).catch(function(e) {
+        console.log(e.message);
+      })
+    }).catch(function(e) {
+      console.log(e.message);
+    });
+
     $.ajax({
       type: "GET",
       url: "myApi.php"
@@ -117,7 +163,7 @@
 
     $("#citySelected").on("change", function() {
       let cityId = $("#citySelected").prop('value');
-      let data2Server = {"cityId": cityId};
+      let data2GetWeather = {"cityId": cityId};
       if(cityId == "-1") {
         $("#citySelectedErr").html("請選擇城市");
         $("#threeDaysWeather").empty();
@@ -127,10 +173,10 @@
         $.ajax({
           type: "POST",
           url: `myApi.php`,
-          data: data2Server
+          data: data2GetWeather
         }).then(function(dataFromServer){
           let data = JSON.parse(dataFromServer);
-          console.log(data);
+          // console.log(data);
           $("#threeDaysWeather").empty();
           $("#citySelectedErr").html("");
           for(let i = 0; i < 6; i += 2) {
@@ -173,9 +219,15 @@
           console.log(e.message);
         });
 
+        let data2GetRain = {
+          "getRainDataFromServer": 1,
+          "cityId": cityId
+        }
+        // console.log(data2GetRain);
         $.ajax({
-          type: "GET",
-          url: `myApi.php?getRainDataFromServer=1&cityId=${cityId}`
+          type: "POST",
+          url: "myApi.php",
+          data: data2GetRain
         }).then(function(dataFromServer) {
           let data = JSON.parse(dataFromServer);
           console.log(data);
@@ -184,7 +236,12 @@
             let oneTr = $("<tr></tr>");
             oneTr.append("<td>" + oneData.locationName + "</td>");
             oneTr.append("<td>" + oneData.obsTime + "</td>");
-            oneTr.append("<td>" + oneData.hour_3 + "</td>");
+            if(oneData.hour_3 == "-998.00") {
+              oneTr.append("<td style='color: red;'>故障</td>");
+            }
+            else {
+              oneTr.append("<td>" + oneData.hour_3 + "</td>");
+            }
             oneTr.append("<td>" + oneData.hour_24 + "</td>");
             $("#rainContent").append(oneTr);
           }

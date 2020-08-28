@@ -6,8 +6,56 @@
     // var_dump($_GET);
 
     if($method == "GET") {
-        if(isset($_GET["getRainDataFromServer"])) {
-            $cityId = $_GET["cityId"];
+        // if(isset($_GET["getRainDataFromServer"])) {
+        //     $cityId = $_GET["cityId"];
+        //     $sqlCommand = "SELECT * FROM rain WHERE cityId = '$cityId'";
+        //     $result = mysqli_query($dbLink, $sqlCommand);
+        //     while($oneRow = mysqli_fetch_assoc($result)) {
+        //         $allData[] = $oneRow;
+        //     }
+        //     echo json_encode($allData);
+        // }
+        // else if(isset($_GET["cityId"])) {
+        //     $cityId = $_GET["cityId"];
+        //     $sqlCommand = "SELECT * FROM weathers WHERE cityId = '$cityId' AND startTime >= CURDATE()";
+        //     $result = mysqli_query($dbLink, $sqlCommand);
+        //     while($oneRow = mysqli_fetch_assoc($result)) {
+        //         $allData[] = $oneRow;
+        //     }
+        //     echo json_encode($allData);
+        // }
+        // if(isset($_GET["getRainData"])) {
+        //     getRainInfoFromInternet();
+        //     $sqlCommand = "INSERT INTO rainCatch(catchTime) VALUE (CURRENT_TIMESTAMP())";
+        //     mysqli_query($dbLink, $sqlCommand);
+        // }
+        // else if(isset($_GET["getWeatherData"])) {
+        //     getWeatherInfoFromInternet();
+        //     $sqlCommand = "INSERT INTO weatherCatch(catchTime) VALUE (CURRENT_TIMESTAMP())";
+        //     mysqli_query($dbLink, $sqlCommand);
+        // }
+        // else {
+            getAllCities();
+        // }
+    }
+    else if($method == "POST") {
+        if(isset($_POST["getWeatherData"])) {
+            if($_POST["getWeatherData"] == 1) {
+                getWeatherInfoFromInternet();
+                $sqlCommand = "INSERT INTO weatherCatch(catchTime) VALUE (CURRENT_TIMESTAMP())";
+                mysqli_query($dbLink, $sqlCommand);
+            }
+        }
+        if(isset($_POST["getRainData"])) {
+            if($_POST["getRainData"] == 1) {
+                getRainInfoFromInternet();
+                $sqlCommand = "INSERT INTO rainCatch(catchTime) VALUE (CURRENT_TIMESTAMP())";
+                mysqli_query($dbLink, $sqlCommand);
+            }
+        }
+
+        if(isset($_POST["getRainDataFromServer"])) {
+            $cityId = $_POST["cityId"];
             $sqlCommand = "SELECT * FROM rain WHERE cityId = '$cityId'";
             $result = mysqli_query($dbLink, $sqlCommand);
             while($oneRow = mysqli_fetch_assoc($result)) {
@@ -15,27 +63,7 @@
             }
             echo json_encode($allData);
         }
-        else if(isset($_GET["cityId"])) {
-            $cityId = $_GET["cityId"];
-            $sqlCommand = "SELECT * FROM weathers WHERE cityId = '$cityId' AND startTime >= CURDATE()";
-            $result = mysqli_query($dbLink, $sqlCommand);
-            while($oneRow = mysqli_fetch_assoc($result)) {
-                $allData[] = $oneRow;
-            }
-            echo json_encode($allData);
-        }
-        else if(isset($_GET["getRainData"])) {
-            getRainInfoFromInternet();
-        }
-        else if(isset($_GET["getWeatherData"])) {
-            getWeatherInfoFromInternet();
-        }
-        else {
-            getAllCities();
-        }
-    }
-    else if($method == "POST") {
-        if(isset($_POST["cityId"])) {
+        else if(isset($_POST["cityId"])) {
             $cityId = $_POST["cityId"];
             $sqlCommand = "SELECT * FROM weathers WHERE cityId = '$cityId' AND startTime >= CURDATE()";
             $result = mysqli_query($dbLink, $sqlCommand);
@@ -43,6 +71,15 @@
                 $allData[] = $oneRow;
             }
             echo json_encode($allData);
+        }
+        else if(isset($_POST["getWeatherCatchTime"])){
+            $sqlCommand = "SELECT * FROM weatherCatch ORDER BY catchTime DESC Limit 0,1";
+            $result = mysqli_query($dbLink, $sqlCommand);
+            $catchTimeArray[] = mysqli_fetch_assoc($result);
+            $sqlCommand = "SELECT * FROM rainCatch ORDER BY catchTime DESC Limit 0,1";
+            $result = mysqli_query($dbLink, $sqlCommand);
+            $catchTimeArray[] = mysqli_fetch_assoc($result);
+            echo json_encode($catchTimeArray);
         }
     }
 
