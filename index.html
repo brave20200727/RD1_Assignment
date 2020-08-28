@@ -13,98 +13,162 @@
     div {
       margin: 5px;
     }
+    /* Center the loader */
+    #loader {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 1;
+      width: 150px;
+      height: 150px;
+      margin: -75px 0 0 -75px;
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #3498db;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite;
+      animation: spin 2s linear infinite;
+    }
+
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Add animation to "page content" */
+    .animate-bottom {
+      position: relative;
+      -webkit-animation-name: animatebottom;
+      -webkit-animation-duration: 1s;
+      animation-name: animatebottom;
+      animation-duration: 1s
+    }
+
+    @-webkit-keyframes animatebottom {
+      from { bottom:-100px; opacity:0 } 
+      to { bottom:0px; opacity:1 }
+    }
+
+    @keyframes animatebottom { 
+      from{ bottom:-100px; opacity:0 } 
+      to{ bottom:0; opacity:1 }
+    }
+
+    #myDiv {
+      display: none;
+      text-align: center;
+    }
   </style>
 </head>
 
-<body>
-  <div class="container">
-    <div class="row">
-      <div>
-        <select id="citySelected" name="citySelected" class="custom-select"></select>
+<body onload="myFunction()" style="margin:0;">
+  <div id="loader"></div>
+
+  <div style="display:none;" id="myDiv" class="animate-bottom">
+    <div class="container">
+      <div class="row">
+        <div>
+          <select id="citySelected" name="citySelected" class="custom-select"></select>
+        </div>
+        <div style="color: red;" id="citySelectedErr"></div>
       </div>
-      <div style="color: red;" id="citySelectedErr"></div>
-    </div>
-    <h3>近三天天氣</h3>
-    <div class="card-deck" id="threeDaysWeather">
-      <div class="card bg-primary">
-        <div class="card-body text-center">
-          <p class="card-text">---</p>
+      <div class="row" id="cityPicture"></div>
+      <h3>近三天天氣</h3>
+      <div class="card-deck" id="threeDaysWeather">
+        <div class="card bg-primary">
+          <div class="card-body text-center">
+            <p class="card-text">---</p>
+          </div>
+        </div>
+        <div class="card bg-primary">
+          <div class="card-body text-center">
+            <p class="card-text">---</p>
+          </div>
+        </div>
+        <div class="card bg-primary">
+          <div class="card-body text-center">
+            <p class="card-text">---</p>
+          </div>
         </div>
       </div>
-      <div class="card bg-primary">
-        <div class="card-body text-center">
-          <p class="card-text">---</p>
+      <h3>近一周天氣</h3>
+      <div class="card-group" id="oneWeekWeather">
+        <div class="card bg-success">
+          <div class="card-body text-center">
+            <p class="card-text">---</p>
+          </div>
+        </div>
+        <div class="card bg-success">
+          <div class="card-body text-center">
+            <p class="card-text">---</p>
+          </div>
+        </div>
+        <div class="card bg-success">
+          <div class="card-body text-center">
+            <p class="card-text">---</p>
+          </div>
+        </div>
+        <div class="card bg-success">
+          <div class="card-body text-center">
+            <p class="card-text">---</p>
+          </div>
+        </div>
+        <div class="card bg-success">
+          <div class="card-body text-center">
+            <p class="card-text">---</p>
+          </div>
+        </div>
+        <div class="card bg-success">
+          <div class="card-body text-center">
+            <p class="card-text">---</p>
+          </div>
+        </div>
+        <div class="card bg-success">
+          <div class="card-body text-center">
+            <p class="card-text">---</p>
+          </div>
         </div>
       </div>
-      <div class="card bg-primary">
-        <div class="card-body text-center">
-          <p class="card-text">---</p>
-        </div>
+      <h3>累積雨量</h3>
+      <div class="row" id="rainData">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>觀測站</th>
+              <th>觀測時間</th>
+              <th>近3小時累積</th>
+              <th>近24小時累積</th>
+            </tr>
+          </thead>
+          <tbody id="rainContent">
+          </tbody>
+        </table>
       </div>
-    </div>
-    <h3>近一周天氣</h3>
-    <div class="card-group" id="oneWeekWeather">
-      <div class="card bg-success">
-        <div class="card-body text-center">
-          <p class="card-text">---</p>
-        </div>
-      </div>
-      <div class="card bg-success">
-        <div class="card-body text-center">
-          <p class="card-text">---</p>
-        </div>
-      </div>
-      <div class="card bg-success">
-        <div class="card-body text-center">
-          <p class="card-text">---</p>
-        </div>
-      </div>
-      <div class="card bg-success">
-        <div class="card-body text-center">
-          <p class="card-text">---</p>
-        </div>
-      </div>
-      <div class="card bg-success">
-        <div class="card-body text-center">
-          <p class="card-text">---</p>
-        </div>
-      </div>
-      <div class="card bg-success">
-        <div class="card-body text-center">
-          <p class="card-text">---</p>
-        </div>
-      </div>
-      <div class="card bg-success">
-        <div class="card-body text-center">
-          <p class="card-text">---</p>
-        </div>
-      </div>
-    </div>
-    <h3>累積雨量</h3>
-    <div class="row" id="rainData">
-      <table class="table table-hover">
-        <thead>
-          <tr>
-            <th>觀測站</th>
-            <th>觀測時間</th>
-            <th>近3小時累積</th>
-            <th>近24小時累積</th>
-          </tr>
-        </thead>
-        <tbody id="rainContent">
-        </tbody>
-      </table>
-    </div>
+    </div>    
   </div>
+
+
 </body>
 
 <script>
+  var myVar;
+
+  function myFunction() {
+    myVar = setTimeout(showPage, 6000);
+  }
+
+  function showPage() {
+    document.getElementById("loader").style.display = "none";
+    document.getElementById("myDiv").style.display = "block";
+  }
+
   $(document).ready(function () {
-    // let date = Date.parse("2020-08-28 09:26:44")/1000;
-    // let date2 = Date.parse("2020-08-28 09:36:44")/1000;
-    // let date3 = Date.parse(new Date())/1000;
-    // alert((date3-date2) > 60*60);
-    // alert((date2-date)/60);
     let data2Update = {
       "getWeatherCatchTime": 1,
       "getRainCatchTime": 1
@@ -112,7 +176,7 @@
     $.ajax({
       type: "POST",
       url: "myApi.php",
-      data: data2Update
+      data: data2Update,
     }).then(function(dataFromServer) {
       let data = JSON.parse(dataFromServer);
       // console.log(data);
@@ -138,7 +202,7 @@
         url: "myApi.php",
         data: data2Server
       }).then(function(dataFromServer) {
-
+        
       }).catch(function(e) {
         console.log(e.message);
       })
@@ -168,8 +232,10 @@
         $("#citySelectedErr").html("請選擇城市");
         $("#threeDaysWeather").empty();
         $("#oneWeekWeather").empty();
+        $("#rainContent").empty();
       }
       else{
+
         $.ajax({
           type: "POST",
           url: `myApi.php`,
