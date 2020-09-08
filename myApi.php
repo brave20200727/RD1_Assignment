@@ -24,18 +24,9 @@
             }
         }
 
-        // if(isset($_POST["getRainDataFromServer"])) {
-        //     $cityId = $_POST["cityId"];
-        //     $sqlCommand = "SELECT * FROM rain WHERE cityId = '$cityId'";
-        //     $result = mysqli_query($dbLink, $sqlCommand);
-        //     while($oneRow = mysqli_fetch_assoc($result)) {
-        //         $allData[] = $oneRow;
-        //     }
-        //     echo json_encode($allData);
-        // }
         if(isset($_POST["cityId"])) {
             $cityId = $_POST["cityId"];
-            $sqlCommand = "SELECT * FROM weathers WHERE cityId = '$cityId' AND startTime >= CURDATE()";
+            $sqlCommand = "SELECT * FROM weathers WHERE cityId = '$cityId' AND (startTime >= CURRENT_TIMESTAMP() or endTime >= CURRENT_TIMESTAMP())";
             $result = mysqli_query($dbLink, $sqlCommand);
             while($oneRow = mysqli_fetch_assoc($result)) {
                 $weatherData[] = $oneRow;
@@ -59,22 +50,28 @@
             $sqlCommand = "SELECT * FROM weatherCatch ORDER BY catchTime DESC Limit 0,1";
             $result = mysqli_query($dbLink, $sqlCommand);
             $weatherRowNum = mysqli_num_rows($result);
-            if($weatherRowNum == 0) {
-                echo '{"errorCode": 1}';
-                return;
-            }
             $catchTimeArray[] = mysqli_fetch_assoc($result);
             $sqlCommand = "SELECT * FROM rainCatch ORDER BY catchTime DESC Limit 0,1";
             $result = mysqli_query($dbLink, $sqlCommand);
             $rainRowNum = mysqli_num_rows($result);
-            if($rainRowNum == 0) {
+            $catchTimeArray[] = mysqli_fetch_assoc($result);
+            if($weatherRowNum == 0 && $rainRowNum != 0) {
                 echo '{"errorCode": 1}';
                 return;
+            }            
+            else if($rainRowNum == 0 && $weatherRowNum != 0) {
+                echo '{"errorCode": 2}';
+                return;
             }
-            $catchTimeArray[] = mysqli_fetch_assoc($result);
-            $returnData["errorCode"] = 666;
-            $returnData["catchTimeArray"] = $catchTimeArray;
-            echo json_encode($returnData);
+            else if( $rainRowNum == 0 && $weatherRowNum == 0 ){
+                echo '{"errorCode": 3}';
+                return;
+            }
+            else {
+                $returnData["errorCode"] = 666;
+                $returnData["catchTimeArray"] = $catchTimeArray;
+                echo json_encode($returnData);                
+            }
         }
     }
 
@@ -161,9 +158,8 @@
                 $oneCityWeather->MaxT[] = $data->records->locations[0]->location[$i]->weatherElement[12]->time[$j]->elementValue[0]->value;
                 $oneCityWeather->WD[] = $data->records->locations[0]->location[$i]->weatherElement[13]->time[$j]->elementValue[0]->value;
             }
-            // var_dump($oneCityWeather);
+
             $cityId = $oneCityWeather->geoCode;
-            $sqlCommand = "REPLACE INTO weathers(cityId, maxAT, maxT, minAT, minT, pop12h, rh, wd, ws1, ws2, wx, startTime, endTime) VALUES";
             for($j = 0; $j < 14; $j++) {
                 $startTime = $oneCityWeather->startTime[$j];
                 $endTime = $oneCityWeather->endTime[$j];
@@ -177,15 +173,13 @@
                 $MaxT = $oneCityWeather->MaxT[$j];
                 $MinT = $oneCityWeather->MinT[$j];
                 $WD = $oneCityWeather->WD[$j];
-                if($j == 0) {
-                    $sqlCommand = $sqlCommand . " ('$cityId', $MaxAT, $MaxT, $MinAT, $MinT, $PoP12H, $RH, '$WD', '$WS1', '$WS2', '$Wx', '$startTime', '$endTime')";
-                }
-                else{
-                    $sqlCommand = $sqlCommand . ", ('$cityId', $MaxAT, $MaxT, $MinAT, $MinT, $PoP12H, $RH, '$WD', '$WS1', '$WS2', '$Wx', '$startTime', '$endTime')";
-                }
-            }
-            echo $sqlCommand . "<br>";
-            mysqli_query($dbLink, $sqlCommand);
+                $sqlCommand = <<< multi
+                    INSERT INTO weathers(cityId, maxAT, maxT, minAT, minT, pop12h, rh, wd, ws1, ws2, wx, startTime, endTime)
+                    VALUES('$cityId', $MaxAT, $MaxT, $MinAT, $MinT, $PoP12H, $RH, '$WD', '$WS1', '$WS2', '$Wx', '$startTime', '$endTime')
+                    ON DUPLICATE KEY UPDATE maxAT = $MaxAT, maxT = $MaxT, minAT = $MinAT, minT = $MinT, pop12h = $PoP12H, rh = $RH, wd = '$WD', ws1 = '$WS1', ws2 = '$WS2', wx = '$Wx';
+                multi;
+                mysqli_multi_query($dbLink, $sqlCommand);
+            } 
         }
     }
 
@@ -209,11 +203,11 @@
             $hour_24 = $oneRainData->weatherElement[6]->elementValue;
             $now = $oneRainData->weatherElement[7]->elementValue;
             $obsTime = $oneRainData->time->obsTime;
-            $sqlCommand = <<< multiLine
-                REPLACE INTO rain(cityId, locationName, rain, hour_3, hour_6, hour_12, hour_24, now, obsTime)
-                VALUE ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$locationName', '$rain', '$hour_3', '$hour_6', '$hour_12', '$hour_24', '$now', '$obsTime')
-            multiLine;
-            // echo $sqlCommand . "<br>";
+            $sqlCommand = <<< multi
+                INSERT INTO rain(cityId, locationName, rain, hour_3, hour_6, hour_12, hour_24, now, obsTime)
+                VALUES ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$locationName', '$rain', '$hour_3', '$hour_6', '$hour_12', '$hour_24', '$now', '$obsTime')
+                ON DUPLICATE KEY UPDATE rain = '$rain', hour_3 = '$hour_3', hour_6 = '$hour_6', hour_12 = '$hour_12', hour_24 = '$hour_24', now = '$now';
+            multi;
             mysqli_query($dbLink, $sqlCommand);
         }
     }
