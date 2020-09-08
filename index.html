@@ -170,7 +170,6 @@
         data: data2Update,
       }).then(function(dataFromServer) {
         let data = JSON.parse(dataFromServer);
-        // console.log(data);
         let getWeatherData = 0;
         let getRainData = 0;
         if(data["errorCode"] == 1) {
@@ -211,7 +210,6 @@
             "getRainData": getRainData
           }
         }
-        // console.log(data2Server);
         $.ajax({
           type: "POST",
           url: "myApi.php",
@@ -230,7 +228,6 @@
         url: "myApi.php"
       }).then(function(dataFromServer) {
         let data = JSON.parse(dataFromServer);
-        // console.log(data);
         $("#citySelected").append("<option value='-1' selected>--</option>");
         for(let oneData of data) {
           let appendItem = $("<option></option>").prop("value", oneData["cityId"]).append(oneData["cityName"]);
@@ -259,7 +256,6 @@
             data: data2GetWeather
           }).then(function(dataFromServer){
             let data = JSON.parse(dataFromServer);
-            console.log(data);
             let today = new Date();
             let year = today.getFullYear();
             let month = today.getMonth()+1;
