@@ -67,7 +67,7 @@
   </style>
 </head>
 
-<body onload="myFunction()" style="margin:0;">
+<body style="margin:0;">
   <div id="loader"></div>
 
   <div style="display:none;" id="myDiv" class="animate-bottom">
@@ -78,7 +78,7 @@
         </div>
         <div style="color: red;" id="citySelectedErr"></div>
       </div>
-      <div class="row" id="cityPicture"></div>
+      <div class="row"><img src="" id="cityPicture"></div>
       <h3>近三天天氣</h3>
       <div class="card-deck" id="threeDaysWeather">
         <div class="card bg-primary">
@@ -142,7 +142,7 @@
             <tr>
               <th>觀測站</th>
               <th>觀測時間</th>
-              <th>近3小時累積</th>
+              <th>近1小時累積</th>
               <th>近24小時累積</th>
             </tr>
           </thead>
@@ -154,17 +154,14 @@
   </div>
 
   <script>
-    var myVar;
-
-    function myFunction() {
-      myVar = setTimeout(showPage, 6000);
-    }
-
     function showPage() {
-      document.getElementById("loader").style.display = "none";
-      document.getElementById("myDiv").style.display = "block";
+      // document.getElementById("loader").style.display = "none";
+      // document.getElementById("myDiv").style.display = "block";
+      $("#loader").hide();
+      $("#myDiv").show();
     }
 
+    
     $(document).ready(function () {
       let data2Update = {
         "getWeatherCatchTime": 1,
@@ -177,18 +174,23 @@
       }).then(function(dataFromServer) {
         let data = JSON.parse(dataFromServer);
         // console.log(data);
-        let getRainData = 0;
-        let getWeatherData = 0;
-        let dateWeather = Date.parse(data[0].catchTime)/1000;
-        let dateRain = Date.parse(data[1].catchTime)/1000;
-        let now = Date.parse(new Date())/1000;
-        if((now-dateWeather) > 60*60*24) {
-          getWeatherData = 1;
+        if(dataFromServer["error"] == 666) {
+          let getRainData = 0;
+          let getWeatherData = 0;
+          let dateWeather = Date.parse(data[0].catchTime)/1000;
+          let dateRain = Date.parse(data[1].catchTime)/1000;
+          let now = Date.parse(new Date())/1000;
+          if((now-dateWeather) > 60*60*24) {
+            getWeatherData = 1;
+          }
+          if((now-dateRain) > 60*10) {
+            getRainData = 1;
+          }          
         }
-        if((now-dateRain) > 60*10) {
+        else {
+          getWeatherData = 1;
           getRainData = 1;
         }
-
         let data2Server = {
           "getWeatherData": getWeatherData,
           "getRainData": getRainData
@@ -199,7 +201,7 @@
           url: "myApi.php",
           data: data2Server
         }).then(function(dataFromServer) {
-          
+          showPage();
         }).catch(function(e) {
           console.log(e.message);
         })
@@ -232,6 +234,20 @@
           $("#rainContent").empty();
         }
         else{
+          let data2GetCityInfo = {
+            getCityInfo: 1,
+            cityId: cityId
+          }
+          $.ajax({
+            type: "POST",
+            url: "myApi.php",
+            data: data2GetCityInfo,
+            dataType: "json"
+          }).then(function(dataFromServer) {
+            console.log(dataFromServer);
+          }).catch(function(e) {
+            console.log(e);
+          });
 
           $.ajax({
             type: "POST",
@@ -239,45 +255,46 @@
             data: data2GetWeather
           }).then(function(dataFromServer){
             let data = JSON.parse(dataFromServer);
-            // console.log(data);
+            console.log(data);
             $("#threeDaysWeather").empty();
             $("#citySelectedErr").html("");
             for(let i = 0; i < 6; i += 2) {
-              let date = new Date(data[i].startTime);
+              let date = new Date(data["allData"][i].startTime);
               let card  = $("<div></div>").prop("class", "card bg-primary");
               let card_body = $("<div></div>").prop("class", "card-body text-center");
               let oneDay = $("<p></p>")
               .append(
                 (date.getMonth()+1) + "/" + date.getDate() + "<br>" + 
-                data[i].wx + "<br>" +
-                "溫度: " + data[i].minT + "度 - " + data[i].maxT + "度<br>" +
-                "體感溫度: " + data[i].minAT + "度 - " + data[i].maxAT + "度<br>" +
-                "降雨機率: " + data[i].pop12h + " %<br>" +
-                "風速: " + data[i].ws1 + " 級風<br>" +
-                "風向: " + data[i].wd
+                data["allData"][i].wx + "<br>" +
+                "溫度: " + data["allData"][i].minT + "度 - " + data["allData"][i].maxT + "度<br>" +
+                "體感溫度: " + data["allData"][i].minAT + "度 - " + data["allData"][i].maxAT + "度<br>" +
+                "降雨機率: " + data["allData"][i].pop12h + " %<br>" +
+                "風速: " + data["allData"][i].ws1 + " 級風<br>" +
+                "風向: " + data["allData"][i].wd
               )
               .prop("class", "card-text")
-              .css("color", "white");
+              .css({"color": "white", "font-size": "15px"});
               $("#threeDaysWeather").append(card.append(card_body.append(oneDay)));
             }
             $("#oneWeekWeather").empty();
             for(let i = 0; i < 14; i += 2) {
-              let date = new Date(data[i].startTime);
+              let date = new Date(data["allData"][i].startTime);
               let card  = $("<div></div>").prop("class", "card bg-success");
               let card_body = $("<div></div>").prop("class", "card-body text-center");
               let oneDay = $("<p></p>")
               .append(
                 (date.getMonth()+1) + "/" + date.getDate() + "<br>" +
-                data[i].wx + "<br>" +
-                data[i].minT + "度 - " + data[i].maxT + "度<br>" +
-                "降雨機率: " + data[i].pop12h + " %<br>" +
-                "風速: " + data[i].ws1 + " 級風<br>" +
-                "風向: " + data[i].wd
+                data["allData"][i].wx + "<br>" +
+                data["allData"][i].minT + "度 - " + data["allData"][i].maxT + "度<br>" +
+                "降雨機率: " + data["allData"][i].pop12h + " %<br>" +
+                "風速: " + data["allData"][i].ws1 + " 級風<br>" +
+                "風向: " + data["allData"][i].wd
               )
               .prop("class", "card-text")
-              .css({"color": "white", "font-size": "10px"});
+              .css({"color": "white", "font-size": "15px"});
               $("#oneWeekWeather").append(card.append(card_body.append(oneDay)));
             }
+            $("#cityPicture").prop("src", data["cityPic"]).height("320px");
           }).catch(function(e){
             console.log(e.message);
           });
@@ -300,12 +317,17 @@
               oneTr.append("<td>" + oneData.locationName + "</td>");
               oneTr.append("<td>" + oneData.obsTime + "</td>");
               if(oneData.hour_3 == "-998.00") {
-                oneTr.append("<td style='color: red;'>故障</td>");
+                oneTr.append("<td>0.00</td>");
               }
               else {
                 oneTr.append("<td>" + oneData.hour_3 + "</td>");
               }
-              oneTr.append("<td>" + oneData.hour_24 + "</td>");
+              if(oneData.hour_24 == "-999.00") {
+                oneTr.append("<td style='color: red;'>故障</td>");
+              }
+              else {
+                oneTr.append("<td>" + oneData.hour_24 + "</td>");
+              }
               $("#rainContent").append(oneTr);
             }
           }).catch(function(e) {

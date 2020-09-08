@@ -40,16 +40,35 @@
             while($oneRow = mysqli_fetch_assoc($result)) {
                 $allData[] = $oneRow;
             }
-            echo json_encode($allData);
+            $sqlCommand = <<< multi
+                SELECT cityPic FROM cities WHERE cityId = $cityId
+            multi;
+            $result = mysqli_query($dbLink, $sqlCommand);
+            $row = mysqli_fetch_assoc($result);
+            $returnData["allData"] = $allData;
+            $returnData["cityPic"] = $row["cityPic"];            
+            echo json_encode($returnData);
         }
         else if(isset($_POST["getWeatherCatchTime"])){
             $sqlCommand = "SELECT * FROM weatherCatch ORDER BY catchTime DESC Limit 0,1";
             $result = mysqli_query($dbLink, $sqlCommand);
+            $weatherRowNum = mysqli_num_rows($result);
+            if($weatherRowNum == 0) {
+                echo '{"errorCode": 1}';
+                return;
+            }
             $catchTimeArray[] = mysqli_fetch_assoc($result);
             $sqlCommand = "SELECT * FROM rainCatch ORDER BY catchTime DESC Limit 0,1";
             $result = mysqli_query($dbLink, $sqlCommand);
+            $rainRowNum = mysqli_num_rows($result);
+            if($rainRowNum == 0) {
+                echo '{"errorCode": 1}';
+                return;
+            }
             $catchTimeArray[] = mysqli_fetch_assoc($result);
-            echo json_encode($catchTimeArray);
+            $returnData["errorCode"] = 666;
+            $returnData["catchTimeArray"] = $catchTimeArray;
+            echo json_encode($returnData);
         }
     }
 
@@ -177,6 +196,7 @@
         foreach($allRainData AS $oneRainData) {
             $cityName = $oneRainData->parameter[0]->parameterValue;
             $locationName = $oneRainData->locationName;
+            $rain = $oneRainData->weatherElement[1]->elementValue;
             $hour_3 = $oneRainData->weatherElement[3]->elementValue;
             $hour_6 = $oneRainData->weatherElement[4]->elementValue;
             $hour_12 = $oneRainData->weatherElement[5]->elementValue;
@@ -184,8 +204,8 @@
             $now = $oneRainData->weatherElement[7]->elementValue;
             $obsTime = $oneRainData->time->obsTime;
             $sqlCommand = <<< multiLine
-                REPLACE INTO rain(cityId, locationName, hour_3, hour_6, hour_12, hour_24, now, obsTime)
-                VALUE ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$locationName', $hour_3, $hour_6, $hour_12, $hour_24, $now, '$obsTime')
+                REPLACE INTO rain(cityId, locationName, rain, hour_3, hour_6, hour_12, hour_24, now, obsTime)
+                VALUE ((SELECT cityId FROM cities WHERE cityName = '$cityName'), '$locationName', '$rain', '$hour_3', '$hour_6', '$hour_12', '$hour_24', '$now', '$obsTime')
             multiLine;
             // echo $sqlCommand . "<br>";
             mysqli_query($dbLink, $sqlCommand);
