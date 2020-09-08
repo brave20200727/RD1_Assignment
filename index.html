@@ -226,7 +226,9 @@
 
       $("#citySelected").on("change", function() {
         let cityId = $("#citySelected").prop('value');
-        let data2GetWeather = {"cityId": cityId};
+        let data2GetWeather = {
+          cityId: cityId
+        };
         if(cityId == "-1") {
           $("#citySelectedErr").html("請選擇城市");
           $("#threeDaysWeather").empty();
@@ -234,20 +236,6 @@
           $("#rainContent").empty();
         }
         else{
-          let data2GetCityInfo = {
-            getCityInfo: 1,
-            cityId: cityId
-          }
-          $.ajax({
-            type: "POST",
-            url: "myApi.php",
-            data: data2GetCityInfo,
-            dataType: "json"
-          }).then(function(dataFromServer) {
-            console.log(dataFromServer);
-          }).catch(function(e) {
-            console.log(e);
-          });
 
           $.ajax({
             type: "POST",
@@ -259,18 +247,18 @@
             $("#threeDaysWeather").empty();
             $("#citySelectedErr").html("");
             for(let i = 0; i < 6; i += 2) {
-              let date = new Date(data["allData"][i].startTime);
+              let date = new Date(data["weatherData"][i].startTime);
               let card  = $("<div></div>").prop("class", "card bg-primary");
               let card_body = $("<div></div>").prop("class", "card-body text-center");
               let oneDay = $("<p></p>")
               .append(
                 (date.getMonth()+1) + "/" + date.getDate() + "<br>" + 
-                data["allData"][i].wx + "<br>" +
-                "溫度: " + data["allData"][i].minT + "度 - " + data["allData"][i].maxT + "度<br>" +
-                "體感溫度: " + data["allData"][i].minAT + "度 - " + data["allData"][i].maxAT + "度<br>" +
-                "降雨機率: " + data["allData"][i].pop12h + " %<br>" +
-                "風速: " + data["allData"][i].ws1 + " 級風<br>" +
-                "風向: " + data["allData"][i].wd
+                data["weatherData"][i].wx + "<br>" +
+                "溫度: " + data["weatherData"][i].minT + "度 - " + data["weatherData"][i].maxT + "度<br>" +
+                "體感溫度: " + data["weatherData"][i].minAT + "度 - " + data["weatherData"][i].maxAT + "度<br>" +
+                "降雨機率: " + data["weatherData"][i].pop12h + " %<br>" +
+                "風速: " + data["weatherData"][i].ws1 + " 級風<br>" +
+                "風向: " + data["weatherData"][i].wd
               )
               .prop("class", "card-text")
               .css({"color": "white", "font-size": "15px"});
@@ -278,41 +266,24 @@
             }
             $("#oneWeekWeather").empty();
             for(let i = 0; i < 14; i += 2) {
-              let date = new Date(data["allData"][i].startTime);
+              let date = new Date(data["weatherData"][i].startTime);
               let card  = $("<div></div>").prop("class", "card bg-success");
               let card_body = $("<div></div>").prop("class", "card-body text-center");
               let oneDay = $("<p></p>")
               .append(
                 (date.getMonth()+1) + "/" + date.getDate() + "<br>" +
-                data["allData"][i].wx + "<br>" +
-                data["allData"][i].minT + "度 - " + data["allData"][i].maxT + "度<br>" +
-                "降雨機率: " + data["allData"][i].pop12h + " %<br>" +
-                "風速: " + data["allData"][i].ws1 + " 級風<br>" +
-                "風向: " + data["allData"][i].wd
+                data["weatherData"][i].wx + "<br>" +
+                data["weatherData"][i].minT + "度 - " + data["weatherData"][i].maxT + "度<br>" +
+                "降雨機率: " + data["weatherData"][i].pop12h + " %<br>" +
+                "風速: " + data["weatherData"][i].ws1 + " 級風<br>" +
+                "風向: " + data["weatherData"][i].wd
               )
               .prop("class", "card-text")
               .css({"color": "white", "font-size": "15px"});
               $("#oneWeekWeather").append(card.append(card_body.append(oneDay)));
             }
-            $("#cityPicture").prop("src", data["cityPic"]).height("320px");
-          }).catch(function(e){
-            console.log(e.message);
-          });
-
-          let data2GetRain = {
-            "getRainDataFromServer": 1,
-            "cityId": cityId
-          }
-          // console.log(data2GetRain);
-          $.ajax({
-            type: "POST",
-            url: "myApi.php",
-            data: data2GetRain
-          }).then(function(dataFromServer) {
-            let data = JSON.parse(dataFromServer);
-            console.log(data);
             $("#rainContent").empty();
-            for(oneData of data) {
+            for(oneData of data["rainData"]) {
               let oneTr = $("<tr></tr>");
               oneTr.append("<td>" + oneData.locationName + "</td>");
               oneTr.append("<td>" + oneData.obsTime + "</td>");
@@ -329,8 +300,9 @@
                 oneTr.append("<td>" + oneData.hour_24 + "</td>");
               }
               $("#rainContent").append(oneTr);
-            }
-          }).catch(function(e) {
+            }            
+            $("#cityPicture").prop("src", data["cityPic"]).height("320px");
+          }).catch(function(e){
             console.log(e.message);
           });
         }

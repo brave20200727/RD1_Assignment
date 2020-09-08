@@ -24,28 +24,34 @@
             }
         }
 
-        if(isset($_POST["getRainDataFromServer"])) {
-            $cityId = $_POST["cityId"];
-            $sqlCommand = "SELECT * FROM rain WHERE cityId = '$cityId'";
-            $result = mysqli_query($dbLink, $sqlCommand);
-            while($oneRow = mysqli_fetch_assoc($result)) {
-                $allData[] = $oneRow;
-            }
-            echo json_encode($allData);
-        }
-        else if(isset($_POST["cityId"])) {
+        // if(isset($_POST["getRainDataFromServer"])) {
+        //     $cityId = $_POST["cityId"];
+        //     $sqlCommand = "SELECT * FROM rain WHERE cityId = '$cityId'";
+        //     $result = mysqli_query($dbLink, $sqlCommand);
+        //     while($oneRow = mysqli_fetch_assoc($result)) {
+        //         $allData[] = $oneRow;
+        //     }
+        //     echo json_encode($allData);
+        // }
+        if(isset($_POST["cityId"])) {
             $cityId = $_POST["cityId"];
             $sqlCommand = "SELECT * FROM weathers WHERE cityId = '$cityId' AND startTime >= CURDATE()";
             $result = mysqli_query($dbLink, $sqlCommand);
             while($oneRow = mysqli_fetch_assoc($result)) {
-                $allData[] = $oneRow;
+                $weatherData[] = $oneRow;
             }
+            $returnData["weatherData"] = $weatherData;
+            $sqlCommand = "SELECT * FROM rain WHERE cityId = '$cityId'";
+            $result = mysqli_query($dbLink, $sqlCommand);
+            while($oneRow = mysqli_fetch_assoc($result)) {
+                $rainData[] = $oneRow;
+            }
+            $returnData["rainData"] = $rainData;
             $sqlCommand = <<< multi
                 SELECT cityPic FROM cities WHERE cityId = $cityId
             multi;
             $result = mysqli_query($dbLink, $sqlCommand);
             $row = mysqli_fetch_assoc($result);
-            $returnData["allData"] = $allData;
             $returnData["cityPic"] = $row["cityPic"];            
             echo json_encode($returnData);
         }
