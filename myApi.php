@@ -32,7 +32,7 @@
                 $weatherData[] = $oneRow;
             }
             $returnData["weatherData"] = $weatherData;
-            $sqlCommand = "SELECT * FROM rain WHERE cityId = '$cityId' AND obsTime = (SELECT obsTime FROM rain ORDER BY obsTime LIMIT 0,1)";
+            $sqlCommand = "SELECT * FROM rain WHERE cityId = '$cityId' AND obsTime = (SELECT obsTime FROM rain ORDER BY obsTime DESC LIMIT 0,1)";
             $result = mysqli_query($dbLink, $sqlCommand);
             while($oneRow = mysqli_fetch_assoc($result)) {
                 $rainData[] = $oneRow;
@@ -142,12 +142,7 @@
             for($j = 0; $j < 14; $j++){
                 $oneCityWeather->startTime[] = $data->records->locations[0]->location[$i]->weatherElement[0]->time[$j]->startTime;
                 $oneCityWeather->endTime[] = $data->records->locations[0]->location[$i]->weatherElement[0]->time[$j]->endTime;
-                if($data->records->locations[0]->location[$i]->weatherElement[0]->time[$j]->elementValue[0]->value == " ") {
-                    $oneCityWeather->PoP12H[] = "0";
-                }
-                else {
-                    $oneCityWeather->PoP12H[] = $data->records->locations[0]->location[$i]->weatherElement[0]->time[$j]->elementValue[0]->value;
-                }
+                $oneCityWeather->PoP12H[] = $data->records->locations[0]->location[$i]->weatherElement[0]->time[$j]->elementValue[0]->value;
                 $oneCityWeather->RH[] = $data->records->locations[0]->location[$i]->weatherElement[2]->time[$j]->elementValue[0]->value;
                 $oneCityWeather->WS1[] = $data->records->locations[0]->location[$i]->weatherElement[4]->time[$j]->elementValue[0]->value;
                 $oneCityWeather->WS2[] = $data->records->locations[0]->location[$i]->weatherElement[4]->time[$j]->elementValue[1]->value;
@@ -173,11 +168,20 @@
                 $MaxT = $oneCityWeather->MaxT[$j];
                 $MinT = $oneCityWeather->MinT[$j];
                 $WD = $oneCityWeather->WD[$j];
-                $sqlCommand = <<< multi
-                    INSERT INTO weathers(cityId, maxAT, maxT, minAT, minT, pop12h, rh, wd, ws1, ws2, wx, startTime, endTime)
-                    VALUES('$cityId', $MaxAT, $MaxT, $MinAT, $MinT, $PoP12H, $RH, '$WD', '$WS1', '$WS2', '$Wx', '$startTime', '$endTime')
-                    ON DUPLICATE KEY UPDATE maxAT = $MaxAT, maxT = $MaxT, minAT = $MinAT, minT = $MinT, pop12h = $PoP12H, rh = $RH, wd = '$WD', ws1 = '$WS1', ws2 = '$WS2', wx = '$Wx';
-                multi;
+                if($PoP12H == "") {
+                    $sqlCommand = <<< multi
+                        INSERT INTO weathers(cityId, maxAT, maxT, minAT, minT, rh, wd, ws1, ws2, wx, startTime, endTime)
+                        VALUES('$cityId', $MaxAT, $MaxT, $MinAT, $MinT, $RH, '$WD', '$WS1', '$WS2', '$Wx', '$startTime', '$endTime')
+                        ON DUPLICATE KEY UPDATE maxAT = $MaxAT, maxT = $MaxT, minAT = $MinAT, minT = $MinT, rh = $RH, wd = '$WD', ws1 = '$WS1', ws2 = '$WS2', wx = '$Wx';
+                    multi;
+                }else {
+                    $sqlCommand = <<< multi
+                        INSERT INTO weathers(cityId, maxAT, maxT, minAT, minT, pop12h, rh, wd, ws1, ws2, wx, startTime, endTime)
+                        VALUES('$cityId', $MaxAT, $MaxT, $MinAT, $MinT, $PoP12H, $RH, '$WD', '$WS1', '$WS2', '$Wx', '$startTime', '$endTime')
+                        ON DUPLICATE KEY UPDATE maxAT = $MaxAT, maxT = $MaxT, minAT = $MinAT, minT = $MinT, pop12h = $PoP12H, rh = $RH, wd = '$WD', ws1 = '$WS1', ws2 = '$WS2', wx = '$Wx';
+                    multi;                    
+                }
+
                 mysqli_multi_query($dbLink, $sqlCommand);
             } 
         }
