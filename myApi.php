@@ -32,7 +32,7 @@
                 $weatherData[] = $oneRow;
             }
             $returnData["weatherData"] = $weatherData;
-            $sqlCommand = "SELECT * FROM rain WHERE cityId = '$cityId'";
+            $sqlCommand = "SELECT * FROM rain WHERE cityId = '$cityId' AND obsTime = (SELECT obsTime FROM rain ORDER BY obsTime LIMIT 0,1)";
             $result = mysqli_query($dbLink, $sqlCommand);
             while($oneRow = mysqli_fetch_assoc($result)) {
                 $rainData[] = $oneRow;
