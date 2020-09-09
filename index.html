@@ -326,6 +326,13 @@
             for(let i = 0; i < data["weatherData"].length; i++) {
               let date = new Date(data["weatherData"][i].startTime);
               if((date - tomorrowMorning == 0) || (date - AfterTomorrowMorning == 0) || ( date - day3 == 0) || ( date - day4 == 0) || ( date - day5 == 0) || ( date - day6 == 0)){
+                let myPoP12H;
+                if(data["weatherData"][i].pop12h == null) {
+                  myPoP12H = "降雨機率: 未知<br>";
+                }
+                else {
+                  myPoP12H = "降雨機率: " + data["weatherData"][i].pop12h + " %<br>";
+                }
                 let card2  = $("<div></div>").prop("class", "card bg-success");
                 let card_body2 = $("<div></div>").prop("class", "card-body text-center");
                 let oneDay2 = $("<p></p>")
@@ -333,7 +340,7 @@
                   (date.getMonth()+1) + "/" + date.getDate() + "<br>" +
                   data["weatherData"][i].wx + "<br>" +
                   data["weatherData"][i].minT + "度 - " + data["weatherData"][i].maxT + "度<br>" +
-                  "降雨機率: " + data["weatherData"][i].pop12h + " %<br>" +
+                  myPoP12H +
                   "風速: " + data["weatherData"][i].ws1 + " 級風<br>" +
                   "風向: " + data["weatherData"][i].wd
                 )

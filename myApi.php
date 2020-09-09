@@ -168,11 +168,11 @@
                 $MaxT = $oneCityWeather->MaxT[$j];
                 $MinT = $oneCityWeather->MinT[$j];
                 $WD = $oneCityWeather->WD[$j];
-                if($PoP12H == "") {
+                if($PoP12H == " ") {
                     $sqlCommand = <<< multi
-                        INSERT INTO weathers(cityId, maxAT, maxT, minAT, minT, rh, wd, ws1, ws2, wx, startTime, endTime)
-                        VALUES('$cityId', $MaxAT, $MaxT, $MinAT, $MinT, $RH, '$WD', '$WS1', '$WS2', '$Wx', '$startTime', '$endTime')
-                        ON DUPLICATE KEY UPDATE maxAT = $MaxAT, maxT = $MaxT, minAT = $MinAT, minT = $MinT, rh = $RH, wd = '$WD', ws1 = '$WS1', ws2 = '$WS2', wx = '$Wx';
+                    INSERT INTO weathers(cityId, maxAT, maxT, minAT, minT, pop12h, rh, wd, ws1, ws2, wx, startTime, endTime)
+                    VALUES('$cityId', $MaxAT, $MaxT, $MinAT, $MinT, NULL, $RH, '$WD', '$WS1', '$WS2', '$Wx', '$startTime', '$endTime')
+                    ON DUPLICATE KEY UPDATE maxAT = $MaxAT, maxT = $MaxT, minAT = $MinAT, minT = $MinT, pop12h = NULL, rh = $RH, wd = '$WD', ws1 = '$WS1', ws2 = '$WS2', wx = '$Wx';
                     multi;
                 }else {
                     $sqlCommand = <<< multi
